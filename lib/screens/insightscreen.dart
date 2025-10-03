@@ -119,7 +119,7 @@ class _CustomAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 16.0, top: 10.0, bottom: 8.0),
+      padding: const EdgeInsets.only(right: 340),
       child: IconButton(
         icon: const Icon(
           Icons.arrow_back_ios,
@@ -174,7 +174,7 @@ class _ScreenBanner extends StatelessWidget {
 
 class SectionTitle extends StatelessWidget {
   final String title;
-  const SectionTitle({required this.title});
+  const SectionTitle({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -192,7 +192,7 @@ class SectionTitle extends StatelessWidget {
 class MetricsGrid extends StatelessWidget {
   final List<MoodMetric> metrics;
 
-  const MetricsGrid({required this.metrics});
+  const MetricsGrid({super.key, required this.metrics});
 
   @override
   Widget build(BuildContext context) {
@@ -278,6 +278,7 @@ class SuggestionCard extends StatelessWidget {
   final Color color;
 
   const SuggestionCard({
+    super.key,
     required this.suggestion,
     required this.icon,
     required this.color,

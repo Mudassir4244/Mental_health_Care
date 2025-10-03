@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:mental_healthcare/screens/Traningscreen.dart';
 import 'package:mental_healthcare/screens/checkin_screen.dart';
 import 'package:mental_healthcare/screens/profilescreen.dart';
 import 'package:mental_healthcare/screens/quizscreen.dart';
-import 'package:mental_healthcare/screens/trainingscreen.dart';
+import 'package:mental_healthcare/screens/insightscreen.dart';
 import 'package:mental_healthcare/widgets/appcolors.dart';
 
 // --- Color Definitions (Re-added for self-contained file) ---
@@ -322,7 +323,7 @@ class BottomNavBar extends StatelessWidget {
           _NavItem(
             icon: Icons.school_outlined,
             isSelected: currentScreen == 'Training',
-            onTap: () => _handleNavigation(context, ActivityScreen()),
+            onTap: () => _handleNavigation(context, TrainingScreen()),
           ),
           // Resources Icon
           _NavItem(

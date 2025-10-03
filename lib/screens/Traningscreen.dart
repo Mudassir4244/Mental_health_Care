@@ -1,103 +1,79 @@
 import 'package:flutter/material.dart';
 import 'package:mental_healthcare/screens/homescreen.dart';
+import 'package:mental_healthcare/screens/quizscreen.dart';
 import 'package:mental_healthcare/widgets/appcolors.dart';
 
-// --- Data Models ---
-class QuizQuestion {
-  final String questionText;
-  final List<String> options;
-  final int correctAnswerIndex; // 0-indexed
+class TrainingModule {
+  final int moduleId;
+  final String title;
+  final String iconEmoji; // E.g., '🧠', '❤️', '🔒'
+  final double completionPercentage; // 0.0 to 1.0
+  final bool isLocked;
 
-  const QuizQuestion({
-    required this.questionText,
-    required this.options,
-    required this.correctAnswerIndex,
+  const TrainingModule({
+    required this.moduleId,
+    required this.title,
+    required this.iconEmoji,
+    required this.completionPercentage,
+    this.isLocked = false,
   });
 }
 
-// --- Quiz Screen Implementation ---
+// --- Training Screen Implementation ---
 
-class QuizScreen extends StatefulWidget {
-  final String title = 'Quiz';
-  const QuizScreen({super.key});
+class TrainingScreen extends StatelessWidget {
+  final String title = 'Training';
+  const TrainingScreen({super.key});
 
-  @override
-  State<QuizScreen> createState() => _QuizScreenState();
-}
-
-class _QuizScreenState extends State<QuizScreen> {
-  final List<QuizQuestion> quizQuestions = const [
-    QuizQuestion(
-      questionText:
-          "What is the most important step in Mental Health First Aid?",
-      options: [
-        "Assess for risk of suicide or harm.",
-        "Listen non-judgmentally.",
-        "Give reassurance and information.",
-        "Encourage professional help.",
-      ],
-      correctAnswerIndex: 0,
+  final List<TrainingModule> modules = const [
+    TrainingModule(
+      moduleId: 1,
+      title: 'Module 1: Introduction to Mental Health',
+      iconEmoji: '🧠',
+      completionPercentage: 1.0, // 100% Completed
+      isLocked: false,
     ),
-    QuizQuestion(
-      questionText: "Which emotion is NOT one of the five basic emotions?",
-      options: ["Joy", "Anger", "Confusion", "Fear"],
-      correctAnswerIndex: 2,
+    TrainingModule(
+      moduleId: 2,
+      title: 'Module 2: Recognizing Signs & Symptoms',
+      iconEmoji: '❤️',
+      completionPercentage: 0.5, // 50% Completed
+      isLocked: false,
+    ),
+    TrainingModule(
+      moduleId: 3,
+      title: 'Module 3: Crisis Response & Support',
+      iconEmoji: '🧠',
+      completionPercentage: 0.0,
+      isLocked: true, // Locked
+    ),
+    TrainingModule(
+      moduleId: 4,
+      title: 'Module 4: Providing Ongoing Support',
+      iconEmoji: '🧠',
+      completionPercentage: 0.0,
+      isLocked: true, // Locked
     ),
   ];
 
-  int currentQuestionIndex = 0;
-  int? selectedOptionIndex;
-  bool answered = false;
-  int score = 0;
-
-  void _handleAnswer(int index) {
-    if (answered) return;
-
-    setState(() {
-      selectedOptionIndex = index;
-      answered = true;
-      if (index == quizQuestions[currentQuestionIndex].correctAnswerIndex) {
-        score++;
-      }
-    });
-  }
-
-  void _nextQuestion() {
-    setState(() {
-      if (currentQuestionIndex < quizQuestions.length - 1) {
-        currentQuestionIndex++;
-        selectedOptionIndex = null;
-        answered = false;
-      } else {
-        // End of quiz, navigate to result or reset
-        showDialog(
-          context: context,
-          builder: (context) => _QuizResultDialog(
-            score: score,
-            total: quizQuestions.length,
-            onRestart: _resetQuiz,
-          ),
-        );
-      }
-    });
-  }
-
-  void _resetQuiz() {
-    Navigator.of(context).pop(); // Close dialog
-    setState(() {
-      currentQuestionIndex = 0;
-      score = 0;
-      selectedOptionIndex = null;
-      answered = false;
-    });
+  void _navigateToQuiz(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const QuizScreen()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final question = quizQuestions[currentQuestionIndex];
+    // Calculate overall course completion
+    final totalModules = modules.length;
+    final completedModules = modules
+        .where((m) => m.completionPercentage == 1.0)
+        .length;
+    final overallCompletion = completedModules / totalModules;
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           // const _StripedBackground(),
@@ -105,46 +81,39 @@ class _QuizScreenState extends State<QuizScreen> {
             bottom: false,
             child: Column(
               children: [
-                _CustomAppBar(title: widget.title),
+                _CustomAppBar(title: title),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Screen Banner (Quiz Ready)
-                        _ScreenBanner(
-                          title:
-                              'Quiz ${currentQuestionIndex + 1}/${quizQuestions.length}',
-                          subtitle: 'Ready for today\'s quiz?',
+                        // Screen Banner (uses AppColors.primary)
+                        const _ScreenBanner(
+                          title: 'Training',
+                          subtitle: 'Mental Health First Aid',
                         ),
                         const SizedBox(height: 20),
 
-                        // Question Card
-                        _QuestionCard(
-                          question: question,
-                          currentQuestionIndex: currentQuestionIndex,
-                          totalQuestions: quizQuestions.length,
-                          selectedOptionIndex: selectedOptionIndex,
-                          onOptionTap: _handleAnswer,
-                          answered: answered,
+                        // Overall Course Progress
+                        CourseProgressCard(
+                          overallCompletion: overallCompletion,
                         ),
+                        const SizedBox(height: 20),
 
-                        // Navigation Button
-                        const SizedBox(height: 32),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: _NavigationButton(
-                            text:
-                                currentQuestionIndex < quizQuestions.length - 1
-                                ? 'Next Question'
-                                : 'Finish Quiz',
-                            onTap: answered ? _nextQuestion : null,
-                          ),
-                        ),
+                        // Module List
+                        ...modules
+                            .map(
+                              (module) => Padding(
+                                padding: const EdgeInsets.only(bottom: 15.0),
+                                child: ModuleTile(module: module),
+                              ),
+                            )
+                            .toList(),
+
                         const SizedBox(
                           height: 100,
-                        ), // Padding above the bottom nav bar
+                        ), // Padding for Floating Button
                       ],
                     ),
                   ),
@@ -152,9 +121,18 @@ class _QuizScreenState extends State<QuizScreen> {
               ],
             ),
           ),
+
+          // Floating Quiz Button
+          Positioned(
+            right: 20,
+            bottom: 80, // Above the BottomNavBar
+            child: _FloatingQuizButton(onTap: () => _navigateToQuiz(context)),
+          ),
+
+          // Bottom Navigation Bar
           Align(
             alignment: Alignment.bottomCenter,
-            child: BottomNavBar(currentScreen: widget.title),
+            child: BottomNavBar(currentScreen: title),
           ),
         ],
       ),
@@ -162,7 +140,7 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 }
 
-// --- Custom Widgets for Quiz Screen ---
+// --- Custom Widgets for Training Screen ---
 
 class _CustomAppBar extends StatelessWidget {
   final String title;
@@ -171,7 +149,7 @@ class _CustomAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 16.0, top: 10.0, bottom: 8.0),
+      padding: const EdgeInsets.only(right: 320),
       child: IconButton(
         icon: const Icon(
           Icons.arrow_back_ios,
@@ -224,108 +202,76 @@ class _ScreenBanner extends StatelessWidget {
   }
 }
 
-class _QuestionCard extends StatelessWidget {
-  final QuizQuestion question;
-  final int currentQuestionIndex;
-  final int totalQuestions;
-  final int? selectedOptionIndex;
-  final Function(int) onOptionTap;
-  final bool answered;
-
-  const _QuestionCard({
-    required this.question,
-    required this.currentQuestionIndex,
-    required this.totalQuestions,
-    required this.selectedOptionIndex,
-    required this.onOptionTap,
-    required this.answered,
-  });
+class CourseProgressCard extends StatelessWidget {
+  final double overallCompletion;
+  const CourseProgressCard({required this.overallCompletion});
 
   @override
   Widget build(BuildContext context) {
+    final percent = (overallCompletion * 100).toInt();
+
     return Card(
       color: AppColors.cardColor,
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            // Question Text
-            Text(
-              question.questionText,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textColorPrimary,
+            // Icon (Brain)
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              alignment: Alignment.center,
+              child: const Text('🧠', style: TextStyle(fontSize: 24)),
+            ),
+            const SizedBox(width: 15),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Completion Text
+                  Text(
+                    '$percent% Completed',
+                    style: TextStyle(
+                      color: AppColors.textColorPrimary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Progress Bar
+                  LinearProgressIndicator(
+                    value: overallCompletion,
+                    backgroundColor: AppColors.stripedColor.withOpacity(0.5),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      AppColors.success,
+                    ),
+                    minHeight: 8,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 20),
 
-            // Options
-            ...List.generate(question.options.length, (index) {
-              final isCorrect =
-                  answered && index == question.correctAnswerIndex;
-              final isSelected = index == selectedOptionIndex;
-
-              Color borderColor = AppColors.stripedColor;
-              Color textColor = AppColors.textColorPrimary;
-              Color iconColor = AppColors.textColorSecondary;
-
-              if (answered) {
-                if (isCorrect) {
-                  // Correctly answered
-                  borderColor = AppColors.success;
-                  textColor = AppColors.success;
-                  iconColor = AppColors.success;
-                } else if (isSelected) {
-                  // Incorrectly answered
-                  borderColor = AppColors.error;
-                  textColor = AppColors.error;
-                  iconColor = AppColors.error;
-                }
-              }
-
-              return GestureDetector(
-                onTap: () => onOptionTap(index),
-                child: Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: isSelected && !answered
-                        ? AppColors.stripedColor.withOpacity(0.5)
-                        : AppColors.background,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: borderColor, width: 2),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${index + 1}. ${question.options[index]}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: textColor,
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                      if (answered)
-                        Icon(
-                          isCorrect
-                              ? Icons.check_circle
-                              : (isSelected ? Icons.cancel : null),
-                          color: iconColor,
-                        ),
-                    ],
-                  ),
+            // Checkmark icon if 100% complete
+            if (overallCompletion == 1.0)
+              Padding(
+                padding: const EdgeInsets.only(left: 10.0),
+                child: Icon(
+                  Icons.check_circle,
+                  color: AppColors.success,
+                  size: 28,
                 ),
-              );
-            }),
+              )
+            else
+              const SizedBox(width: 38), // Space to align with checkmark
           ],
         ),
       ),
@@ -333,91 +279,169 @@ class _QuestionCard extends StatelessWidget {
   }
 }
 
-class _NavigationButton extends StatelessWidget {
-  final String text;
-  final VoidCallback? onTap;
-
-  const _NavigationButton({required this.text, required this.onTap});
+class ModuleTile extends StatelessWidget {
+  final TrainingModule module;
+  const ModuleTile({required this.module});
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: onTap,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.accent,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 5,
-        minimumSize: const Size(double.infinity, 50),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    final percent = (module.completionPercentage * 100).toInt();
+
+    Color progressColor;
+    if (module.completionPercentage == 1.0) {
+      progressColor = AppColors.success;
+    } else if (module.completionPercentage > 0.0) {
+      progressColor = AppColors.accent; // In-progress color
+    } else {
+      progressColor = AppColors.stripedColor; // Not started color
+    }
+
+    // Determine icon and tap behavior
+    final icon = module.isLocked ? Icons.lock_outline : Icons.chevron_right;
+    final iconColor = module.isLocked
+        ? AppColors.textColorSecondary.withOpacity(0.7)
+        : AppColors.primary;
+    final onTap = module.isLocked
+        ? null
+        : () {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('Starting ${module.title}')));
+          };
+
+    return Card(
+      color: AppColors.cardColor,
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(15),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Row(
+            children: [
+              // Icon Container
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  module.iconEmoji,
+                  style: const TextStyle(fontSize: 24),
+                ),
+              ),
+              const SizedBox(width: 15),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title
+                    Text(
+                      module.title,
+                      style: TextStyle(
+                        color: module.isLocked
+                            ? AppColors.textColorSecondary
+                            : AppColors.textColorPrimary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+
+                    if (module.completionPercentage < 1.0 && !module.isLocked)
+                      // Progress Bar and Text (for in-progress/not started)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '$percent% Completed',
+                            style: TextStyle(
+                              color: AppColors.textColorSecondary,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          LinearProgressIndicator(
+                            value: module.completionPercentage,
+                            backgroundColor: AppColors.stripedColor.withOpacity(
+                              0.5,
+                            ),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              progressColor,
+                            ),
+                            minHeight: 6,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ],
+                      )
+                    else if (module.completionPercentage == 1.0)
+                      // Completed Text
+                      Row(
+                        children: [
+                          Text(
+                            '100% Completed',
+                            style: TextStyle(
+                              color: AppColors.success,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.check_circle_outline,
+                            color: AppColors.success,
+                            size: 14,
+                          ),
+                        ],
+                      )
+                    else
+                      // Locked Status Text
+                      Text(
+                        'Locked',
+                        style: TextStyle(
+                          color: AppColors.textColorSecondary.withOpacity(0.7),
+                          fontSize: 12,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              // Trailing Icon
+              Padding(
+                padding: const EdgeInsets.only(left: 10.0),
+                child: Icon(icon, color: iconColor, size: 28),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
-class _QuizResultDialog extends StatelessWidget {
-  final int score;
-  final int total;
-  final VoidCallback onRestart;
-
-  const _QuizResultDialog({
-    required this.score,
-    required this.total,
-    required this.onRestart,
-  });
+class _FloatingQuizButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _FloatingQuizButton({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final passed = score == total;
-    return AlertDialog(
-      backgroundColor: AppColors.cardColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Text(
-        passed ? 'Congratulations!' : 'Try Again!',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          color: passed ? AppColors.success : AppColors.error,
-          fontWeight: FontWeight.bold,
-        ),
+    return FloatingActionButton.extended(
+      onPressed: onTap,
+      label: const Text(
+        'Quiz',
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'You scored $score out of $total questions correctly.',
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: AppColors.textColorPrimary,
-              fontSize: 16,
-            ),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context); // Close dialog
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: const Text('View Summary'),
-          ),
-          TextButton(
-            onPressed: onRestart,
-            child: const Text(
-              'Restart Quiz',
-              style: TextStyle(color: AppColors.accent),
-            ),
-          ),
-        ],
-      ),
+      icon: const Icon(Icons.school),
+      backgroundColor: AppColors.accent,
+      foregroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      elevation: 6,
     );
   }
 }

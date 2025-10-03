@@ -171,7 +171,7 @@ class _CustomAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 16.0, top: 10.0, bottom: 8.0),
+      padding: const EdgeInsets.only(right: 320),
       child: IconButton(
         icon: const Icon(
           Icons.arrow_back_ios,

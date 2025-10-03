@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:mental_healthcare/screens/Traningscreen.dart';
+import 'package:mental_healthcare/screens/finding_therapist.dart';
 import 'package:mental_healthcare/screens/homescreen.dart';
+import 'package:mental_healthcare/screens/insightscreen.dart';
+import 'package:mental_healthcare/screens/quizscreen.dart';
 import 'package:mental_healthcare/widgets/appcolors.dart';
 
 // --- Color Definitions (Re-added for self-contained file) ---
 
 // --- Screen Implementation (Dashboard Screen) ---
-
-
 
 // --- Placeholder Screen for Navigation Demo ---
 class PlaceholderScreen extends StatelessWidget {
@@ -105,9 +107,35 @@ class Profilescreen extends StatelessWidget {
                         const SizedBox(height: 8),
                         const SubscriptionCard(),
 
-                        const SizedBox(
-                          height: 100,
-                        ), // Padding above the bottom nav bar
+                        const SizedBox(height: 40),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => FindingTherapist(),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: AppColors.accent,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Center(
+                              child: Text(
+                                'Find Therapist',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 19,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -187,87 +215,6 @@ class WelcomeBanner extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class FeatureGrid extends StatelessWidget {
-  const FeatureGrid({super.key});
-
-  Widget _buildPlaceholderIllustration(IconData icon) {
-    return Icon(icon, size: 60, color: AppColors.primary.withOpacity(0.7));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      crossAxisSpacing: 16.0,
-      mainAxisSpacing: 16.0,
-      physics: const NeverScrollableScrollPhysics(),
-      children: [
-        FeatureTile(
-          label: 'HELP NOW',
-          illustration: _buildPlaceholderIllustration(Icons.handshake_outlined),
-        ),
-        FeatureTile(
-          label: 'CHECK IN',
-          illustration: _buildPlaceholderIllustration(Icons.map_outlined),
-        ),
-        FeatureTile(
-          label: 'TRAINING',
-          illustration: _buildPlaceholderIllustration(
-            Icons.psychology_outlined,
-          ),
-        ),
-        FeatureTile(
-          label: 'RESOURCES',
-          illustration: _buildPlaceholderIllustration(Icons.source_outlined),
-        ),
-      ],
-    );
-  }
-}
-
-class FeatureTile extends StatelessWidget {
-  final String label;
-  final Widget illustration;
-
-  const FeatureTile({
-    super.key,
-    required this.label,
-    required this.illustration,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: AppColors.cardColor,
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: InkWell(
-        onTap: () {},
-        borderRadius: BorderRadius.circular(15),
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(child: Center(child: illustration)),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -560,28 +507,19 @@ class BottomNavBar extends StatelessWidget {
           _NavItem(
             icon: Icons.bookmark_border,
             isSelected: currentScreen == 'Bookmarks',
-            onTap: () => _handleNavigation(
-              context,
-              const PlaceholderScreen(title: "Bookmarks"),
-            ),
+            onTap: () => _handleNavigation(context, const InsightsScreen()),
           ),
           // Training Icon
           _NavItem(
             icon: Icons.school_outlined,
             isSelected: currentScreen == 'Training',
-            onTap: () => _handleNavigation(
-              context,
-              const PlaceholderScreen(title: "Training"),
-            ),
+            onTap: () => _handleNavigation(context, const TrainingScreen()),
           ),
           // Resources Icon
           _NavItem(
             icon: Icons.layers_outlined,
             isSelected: currentScreen == 'Resources',
-            onTap: () => _handleNavigation(
-              context,
-              const PlaceholderScreen(title: "Resources"),
-            ),
+            onTap: () => _handleNavigation(context, const QuizScreen()),
           ),
           // Profile Icon
           _NavItem(
