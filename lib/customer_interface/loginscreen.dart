@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mental_healthcare/screens/homescreen.dart';
+import 'package:mental_healthcare/customer_interface/choice_screen.dart';
+import 'package:mental_healthcare/customer_interface/homescreen.dart';
 import 'package:mental_healthcare/widgets/appcolors.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -131,7 +132,9 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context)=>ChoiceScreen()));
+                      },
                       child: Text(
                         "Sign Up",
                         style: TextStyle(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mental_healthcare/screens/choice_screen.dart';
-import 'package:mental_healthcare/screens/loginscreen.dart';
+import 'package:mental_healthcare/customer_interface/choice_screen.dart';
+import 'package:mental_healthcare/customer_interface/loginscreen.dart';
 
 class second_onboardingscreen extends StatelessWidget {
   const second_onboardingscreen({super.key});

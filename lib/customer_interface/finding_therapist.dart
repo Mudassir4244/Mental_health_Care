@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mental_healthcare/screens/homescreen.dart';
+import 'package:get/get.dart';
 import 'package:mental_healthcare/widgets/appcolors.dart';
+import 'package:mental_healthcare/widgets/widgets.dart';
 
 // --- Data Models ---
 class Therapist {
@@ -87,14 +88,12 @@ class FindingTherapist extends StatelessWidget {
                         const SizedBox(height: 15),
 
                         // Therapist List
-                        ...mockTherapists
-                            .map(
-                              (therapist) => Padding(
-                                padding: const EdgeInsets.only(bottom: 15.0),
-                                child: TherapistTile(therapist: therapist),
-                              ),
-                            )
-                            .toList(),
+                        ...mockTherapists.map(
+                          (therapist) => Padding(
+                            padding: const EdgeInsets.only(bottom: 15.0),
+                            child: TherapistTile(therapist: therapist),
+                          ),
+                        ),
 
                         const SizedBox(
                           height: 100,
@@ -212,7 +211,7 @@ class _MapPlaceholder extends StatelessWidget {
 
 class TherapistTile extends StatelessWidget {
   final Therapist therapist;
-  const TherapistTile({required this.therapist});
+  const TherapistTile({super.key, required this.therapist});
 
   @override
   Widget build(BuildContext context) {
@@ -222,9 +221,15 @@ class TherapistTile extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: InkWell(
         onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Viewing profile for ${therapist.name}')),
+          Get.snackbar(
+            duration: Duration(seconds: 2),
+            backgroundColor: Colors.white,
+            'Practitioner Profile',
+            "Viewing profile for ${therapist.name}",
           );
+          // ScaffoldMessenger.of(context).showSnackBar(
+          //   SnackBar(content: Text('Viewing profile for ${therapist.name}')),
+          // );
         },
         borderRadius: BorderRadius.circular(15),
         child: Padding(

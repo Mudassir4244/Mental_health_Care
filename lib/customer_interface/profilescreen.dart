@@ -1,43 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:mental_healthcare/screens/Traningscreen.dart';
-import 'package:mental_healthcare/screens/finding_therapist.dart';
-import 'package:mental_healthcare/screens/homescreen.dart';
-import 'package:mental_healthcare/screens/insightscreen.dart';
-import 'package:mental_healthcare/screens/quizscreen.dart';
+import 'package:get/get.dart';
+import 'package:mental_healthcare/customer_interface/finding_therapist.dart';
+import 'package:mental_healthcare/customer_interface/homescreen.dart';
 import 'package:mental_healthcare/widgets/appcolors.dart';
+import 'package:mental_healthcare/widgets/widgets.dart';
 
 // --- Color Definitions (Re-added for self-contained file) ---
 
 // --- Screen Implementation (Dashboard Screen) ---
-
-// --- Placeholder Screen for Navigation Demo ---
-class PlaceholderScreen extends StatelessWidget {
-  final String title;
-
-  const PlaceholderScreen({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: Center(
-        child: Text(
-          'This is the $title Screen.',
-          style: const TextStyle(
-            fontSize: 20,
-            color: AppColors.textColorPrimary,
-          ),
-        ),
-      ),
-      // Placing BottomNavBar here for consistency across navigation
-      bottomNavigationBar: BottomNavBar(currentScreen: title),
-    );
-  }
-}
 
 // --- Profile Screen (Detailed Implementation based on image) ---
 class Profilescreen extends StatelessWidget {
@@ -126,7 +96,7 @@ class Profilescreen extends StatelessWidget {
                             ),
                             child: Center(
                               child: Text(
-                                'Find Therapist',
+                                'Find Practioner',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -450,7 +420,32 @@ class SubscriptionCard extends StatelessWidget {
 
             // Upgrade Button
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Get.dialog(
+                  AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    title: Text("Custom Alert"),
+                    content: Text(
+                      "This is a fully custom dialog with Get.dialog.",
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Get.back(),
+                        child: Text("Cancel"),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Get.back();
+                          Get.snackbar("Confirmed", "You pressed Confirm");
+                        },
+                        child: Text("Confirm"),
+                      ),
+                    ],
+                  ),
+                );
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accent, // Use accent color
                 foregroundColor: Colors.white,
@@ -476,79 +471,22 @@ class SubscriptionCard extends StatelessWidget {
 
 // --- Navigation Implementation ---
 
-class BottomNavBar extends StatelessWidget {
-  final String currentScreen;
-  const BottomNavBar({super.key, required this.currentScreen});
+// class _NavItem extends StatelessWidget {
+//   final IconData icon;
+//   final bool isSelected;
+//   final VoidCallback? onTap; // This is the function passed from the parent
 
-  // Helper function for navigation logic using pushReplacement
-  void _handleNavigation(BuildContext context, Widget screen) {
-    // Navigator.pushReplacement is used to prevent the back button from accumulating screens
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => screen),
-    );
-  }
+//   const _NavItem({required this.icon, required this.isSelected, this.onTap});
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 70,
-      decoration: const BoxDecoration(color: AppColors.primary),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          // Home Icon
-          _NavItem(
-            icon: Icons.home_filled,
-            isSelected: currentScreen == 'Home',
-            onTap: () => _handleNavigation(context, const HomeScreen()),
-          ),
-          // Bookmarks Icon
-          _NavItem(
-            icon: Icons.bookmark_border,
-            isSelected: currentScreen == 'Bookmarks',
-            onTap: () => _handleNavigation(context, const InsightsScreen()),
-          ),
-          // Training Icon
-          _NavItem(
-            icon: Icons.school_outlined,
-            isSelected: currentScreen == 'Training',
-            onTap: () => _handleNavigation(context, const TrainingScreen()),
-          ),
-          // Resources Icon
-          _NavItem(
-            icon: Icons.layers_outlined,
-            isSelected: currentScreen == 'Resources',
-            onTap: () => _handleNavigation(context, const QuizScreen()),
-          ),
-          // Profile Icon
-          _NavItem(
-            icon: Icons.person_outlined,
-            isSelected: currentScreen == 'Profile',
-            onTap: () => _handleNavigation(context, const Profilescreen()),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final bool isSelected;
-  final VoidCallback? onTap; // This is the function passed from the parent
-
-  const _NavItem({required this.icon, this.isSelected = false, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: Icon(
-        icon,
-        color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
-        size: 28,
-      ),
-      onPressed: onTap, // Executes the navigation function when pressed
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return IconButton(
+//       icon: Icon(
+//         icon,
+//         color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
+//         size: 28,
+//       ),
+//       onPressed: onTap, // Executes the navigation function when pressed
+//     );
+//   }
+// }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mental_healthcare/screens/homescreen.dart';
-import 'package:mental_healthcare/screens/quizscreen.dart';
+import 'package:mental_healthcare/customer_interface/quizscreen.dart';
 import 'package:mental_healthcare/widgets/appcolors.dart';
+import 'package:mental_healthcare/widgets/widgets.dart';
 
 class TrainingModule {
   final int moduleId;
@@ -74,6 +74,20 @@ class TrainingScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        iconTheme: IconThemeData(color: Colors.white),
+        // leading: Builder(
+        //   builder: (_) => IconButton(
+        //     onPressed: () {
+        //       Scaffold.of(context).openDrawer();
+        //     },
+        //     icon: Icon(Icons.menu),
+        //   ),
+        // ),
+        backgroundColor: AppColors.primary,
+      ),
+      drawer: Mydrawer(),
+
       body: Stack(
         children: [
           // const _StripedBackground(),
@@ -81,7 +95,8 @@ class TrainingScreen extends StatelessWidget {
             bottom: false,
             child: Column(
               children: [
-                _CustomAppBar(title: title),
+                // _CustomAppBar(title: title),
+                SizedBox(height: 10),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -102,14 +117,12 @@ class TrainingScreen extends StatelessWidget {
                         const SizedBox(height: 20),
 
                         // Module List
-                        ...modules
-                            .map(
-                              (module) => Padding(
-                                padding: const EdgeInsets.only(bottom: 15.0),
-                                child: ModuleTile(module: module),
-                              ),
-                            )
-                            .toList(),
+                        ...modules.map(
+                          (module) => Padding(
+                            padding: const EdgeInsets.only(bottom: 15.0),
+                            child: ModuleTile(module: module),
+                          ),
+                        ),
 
                         const SizedBox(
                           height: 100,
@@ -123,11 +136,6 @@ class TrainingScreen extends StatelessWidget {
           ),
 
           // Floating Quiz Button
-          Positioned(
-            right: 20,
-            bottom: 80, // Above the BottomNavBar
-            child: _FloatingQuizButton(onTap: () => _navigateToQuiz(context)),
-          ),
 
           // Bottom Navigation Bar
           Align(
@@ -135,28 +143,6 @@ class TrainingScreen extends StatelessWidget {
             child: BottomNavBar(currentScreen: title),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// --- Custom Widgets for Training Screen ---
-
-class _CustomAppBar extends StatelessWidget {
-  final String title;
-  const _CustomAppBar({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 320),
-      child: IconButton(
-        icon: const Icon(
-          Icons.arrow_back_ios,
-          color: AppColors.textColorPrimary,
-          size: 24,
-        ),
-        onPressed: () => Navigator.pop(context),
       ),
     );
   }
@@ -204,7 +190,7 @@ class _ScreenBanner extends StatelessWidget {
 
 class CourseProgressCard extends StatelessWidget {
   final double overallCompletion;
-  const CourseProgressCard({required this.overallCompletion});
+  const CourseProgressCard({super.key, required this.overallCompletion});
 
   @override
   Widget build(BuildContext context) {
@@ -281,7 +267,7 @@ class CourseProgressCard extends StatelessWidget {
 
 class ModuleTile extends StatelessWidget {
   final TrainingModule module;
-  const ModuleTile({required this.module});
+  const ModuleTile({super.key, required this.module});
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mental_healthcare/screens/splashscreens/onboarding_screen.dart';
+import 'package:get/get.dart';
+import 'package:mental_healthcare/customer_interface/splashscreens/onboarding_screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -15,10 +16,9 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      home: OnboardingScreen(
-      ),
+      home: OnboardingScreen(),
     );
   }
 }

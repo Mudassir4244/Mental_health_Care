@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:mental_healthcare/customer_interface/homescreen.dart';
+import 'package:mental_healthcare/customer_interface/loginscreen.dart';
+import 'package:mental_healthcare/customer_interface/practionar_registration.dart';
+import 'package:mental_healthcare/customer_interface/signup_screen.dart';
+import 'package:mental_healthcare/organization_interface/user_choice.dart';
 import 'package:mental_healthcare/widgets/appcolors.dart';
 
 class ChoiceScreen extends StatelessWidget {
@@ -22,7 +27,7 @@ class ChoiceScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF7B99E5), // Primary color
+                    color: AppColors.primary, // Primary color
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -33,26 +38,70 @@ class ChoiceScreen extends StatelessWidget {
                   color: const Color(0xFF29ADB2), // Accent color
                   onTap: () {
                     // Handle Guest Login
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => HomeScreen()),
+                    );
                   },
                 ),
                 const SizedBox(height: 20),
 
                 // User Button
                 _buildLoginButton(
-                  title: "Continue as User",
-                  color: const Color(0xFF7B99E5), // Primary color
+                  title: "Continue as Customer",
+                  color: AppColors.primary, // Primary color
                   onTap: () {
                     // Handle User Login
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => SignupScreen()),
+                    );
                   },
                 ),
                 const SizedBox(height: 20),
 
                 // Doctor Button
                 _buildLoginButton(
-                  title: "Continue as Doctor",
+                  title: "Continue as Practitionar",
                   color: Colors.black87, // Contrast with palette
                   onTap: () {
                     // Handle Doctor Login
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PractitionerRegistrationScreen(),
+                      ),
+                    );
+                  },
+                ),
+                SizedBox(height: 30),
+                _buildLoginButton(
+                  title: "Continue with Organization",
+                  color: AppColors.textColorSecondary,
+
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => OrganizationOptionScreen(),
+                      ),
+                    );
+                  },
+                ),
+                SizedBox(height: 30),
+                Text(
+                  'Already have an account ?',
+                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 20),
+                _buildLoginButton(
+                  title: 'Login',
+                  color: AppColors.textColorPrimary,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => LoginScreen()),
+                    );
                   },
                 ),
               ],
