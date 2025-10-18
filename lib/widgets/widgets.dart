@@ -201,7 +201,7 @@ class BottomNavBar extends StatelessWidget {
             icon: Icons.person_outline,
             label: "Profile",
             isSelected: currentScreen == 'Profile',
-            onTap: () => _handleNavigation(context, const Profilescreen()),
+            onTap: () => _handleNavigation(context,  Profilescreen()),
           ),
         ],
       ),

@@ -37,12 +37,11 @@ class Profilescreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           // 1. Striped Background Layer
-          _buildStripedBackground(),
-
+          // _buildStripedBackground(),
           SafeArea(
             bottom: false, // Prevents bottom padding obscuring the nav bar
             child: Column(
@@ -468,25 +467,3 @@ class SubscriptionCard extends StatelessWidget {
     );
   }
 }
-
-// --- Navigation Implementation ---
-
-// class _NavItem extends StatelessWidget {
-//   final IconData icon;
-//   final bool isSelected;
-//   final VoidCallback? onTap; // This is the function passed from the parent
-
-//   const _NavItem({required this.icon, required this.isSelected, this.onTap});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return IconButton(
-//       icon: Icon(
-//         icon,
-//         color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
-//         size: 28,
-//       ),
-//       onPressed: onTap, // Executes the navigation function when pressed
-//     );
-//   }
-// }

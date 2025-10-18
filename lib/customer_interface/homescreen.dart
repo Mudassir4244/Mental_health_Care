@@ -30,7 +30,7 @@ class HomeScreen extends StatelessWidget {
         ),
         backgroundColor: AppColors.primary,
       ),
-      backgroundColor: AppColors.stripedColor,
+      backgroundColor: AppColors.background,
       drawer: Mydrawer(), // ✅ Your custom drawer
       body: Stack(
         children: [

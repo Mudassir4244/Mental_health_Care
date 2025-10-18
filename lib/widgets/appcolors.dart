@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color primary = Color.fromARGB(255, 2, 10, 249);
+  static const Color primary = Colors.lightBlue;
+  // static late Color primary =
+  //     LinearGradient(
+  //           colors: [Color(0xFF1A73E8), Color(0xFF64B5F6)],
+  //           begin: Alignment.topLeft,
+  //           end: Alignment.bottomRight,
+  //         )
+  //         as Color;
+
   // static const Color primary = Colors.blue;
-  static const Color background = Color(0xFFF5F5F5);
+  static const Color background = Color.fromARGB(255, 245, 245, 245);
   static const Color accent = Color(0xFF29ADB2);
   static const Color cardColor = Colors.white;
   // A dark grey/black for the striped background texture simulation
-  static const Color stripedColor = Color(0xFFD4D4D4);
+  static const Color stripedColor = Color.fromARGB(255, 212, 212, 212);
   // static const Color cardColor = Colors.white;
   // A dark grey/black for the striped background texture simulation
   // static const Color stripedColor = Color(0xFFD4D4D4);

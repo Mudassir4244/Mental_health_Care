@@ -73,7 +73,7 @@ class TrainingScreen extends StatelessWidget {
     final overallCompletion = completedModules / totalModules;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.white),
         // leading: Builder(
