@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'package:mental_healthcare/backend/customer.dart';
 import 'package:mental_healthcare/frontend/customer_interface/loginscreen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/settings.dart';
-import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/add_user.dart';
+import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/added_users.dart';
 import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/organ_inbox.dart';
 import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/organ_profile.dart';
 import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/organization_homescreen.dart';
@@ -317,9 +317,7 @@ class _MydrawerState extends State<Mydrawer> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => CreateCredentialsScreen(),
-                        ),
+                        MaterialPageRoute(builder: (_) => AddedUsers()),
                       );
                     },
                     leading: Icon(Icons.person_add),
@@ -380,7 +378,7 @@ class _MydrawerState extends State<Mydrawer> {
                           ElevatedButton(
                             onPressed: () {
                               // ignore: avoid_types_as_parameter_names
-                              auth.signOut(context).then((Value) {
+                              auth.signout(context).then((Value) {
                                 // Add your logout logic here (e.g., FirebaseAuth.instance.signOut())
                                 Navigator.push(
                                   context,

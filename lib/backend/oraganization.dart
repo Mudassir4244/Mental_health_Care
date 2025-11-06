@@ -1,8 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/organization_homescreen.dart';
 import 'package:mental_healthcare/payment_process/stripe_services.dart';
 
 class OrganAuth {
@@ -178,49 +177,91 @@ class OrganAuth {
     }
   }
 
-  Future<User?> add_user({
+  Future<void> add_user({
     required String Username,
     required String Useremail,
     required String Userpassword,
     required BuildContext context,
+    required String payment_status,
   }) async {
-    final FirebaseAuth firebaseauth = FirebaseAuth.instance;
+    final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     try {
-      // ✅ Create employee account
-      final userCredentials = await firebaseauth.createUserWithEmailAndPassword(
+      // ✅ Save the current owner session before creating a new user
+      final currentOwner = firebaseAuth.currentUser;
+
+      if (currentOwner == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No organization owner logged in.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // ✅ Get current organization details
+      final ownerDoc = await firestore
+          .collection("Users")
+          .doc(currentOwner.uid)
+          .get();
+
+      String organizationName = "Unknown Organization";
+
+      if (ownerDoc.exists && ownerDoc.data() != null) {
+        organizationName =
+            ownerDoc.data()!["Organization name"] ?? organizationName;
+      }
+
+      // ✅ Create new user with a secondary FirebaseAuth instance
+      final secondaryAuth = FirebaseAuth.instanceFor(
+        app: await Firebase.initializeApp(
+          name: 'SecondaryApp',
+          options: Firebase.app().options,
+        ),
+      );
+
+      final userCredential = await secondaryAuth.createUserWithEmailAndPassword(
         email: Useremail.trim(),
         password: Userpassword.trim(),
       );
 
-      User? newEmployee = userCredentials.user;
+      final newUser = userCredential.user;
 
-      if (newEmployee != null) {
-        // ✅ Get current logged-in organization owner
-        final String currentOwnerId = FirebaseAuth.instance.currentUser!.uid;
-
-        await firestore.collection("Users").doc(newEmployee.uid).set({
-          "Created by": currentOwnerId, // 🔥 Must match Stream query
+      if (newUser != null) {
+        // ✅ Save employee data in Firestore
+        await firestore.collection("Users").doc(newUser.uid).set({
+          "Created by": currentOwner.uid,
+          "Organization name": organizationName,
           "Username": Username.trim(),
           "Email": Useremail.trim(),
           "Password": Userpassword.trim(),
           "role": "Organization Employee",
-          "Payment Status": "Completed",
+          "Payment Status": payment_status,
           "Created at": FieldValue.serverTimestamp(),
         });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('User credentials created successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
       }
 
-      return newEmployee;
+      // ✅ Important: Sign out secondary instance (not the owner)
+      // await secondaryAuth.signOut();
+      // await secondaryAuth.app.delete();
     } on FirebaseAuthException catch (e) {
       String errorMessage;
 
       if (e.code == 'email-already-in-use') {
-        errorMessage = 'This email is already registered. Please use another.';
+        errorMessage = 'This email is already registered.';
       } else if (e.code == 'weak-password') {
         errorMessage = 'The password is too weak.';
       } else if (e.code == 'invalid-email') {
-        errorMessage = 'The email address is not valid.';
+        errorMessage = 'Invalid email address.';
       } else {
         errorMessage = 'Error: ${e.message}';
       }
@@ -228,8 +269,6 @@ class OrganAuth {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
       );
-
-      return null;
     } catch (e) {
       debugPrint("Error in add_user: $e");
       ScaffoldMessenger.of(context).showSnackBar(
@@ -238,7 +277,6 @@ class OrganAuth {
           backgroundColor: Colors.red,
         ),
       );
-      return null;
     }
   }
 

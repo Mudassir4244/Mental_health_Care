@@ -378,7 +378,7 @@ class _MydrawerState extends State<Mydrawer> {
                         ),
                         ElevatedButton(
                           onPressed: () {
-                            auth.signOut(context);
+                            auth.signout(context);
                             // Navigator.pop(context);
                           },
                           child: const Text('Yes'),

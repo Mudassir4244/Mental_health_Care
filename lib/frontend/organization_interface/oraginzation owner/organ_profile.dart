@@ -1,8 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/organization_homescreen.dart';
 import 'package:mental_healthcare/frontend/organization_interface/widgets/organ_widigets.dart';
-import 'package:mental_healthcare/frontend/practioner_interface/prac_homescreen.dart';
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
 import 'package:mental_healthcare/backend/oraganization.dart';
 
@@ -211,9 +209,17 @@ class _OrganProfileState extends State<OrganProfile>
                             ),
                           ],
                         ),
-
-                        const SizedBox(height: 24),
-
+                        SizedBox(height: 30),
+                        Text(organData['Created by']),
+                        // const SizedBox(height: 24),
+                        // Expanded(
+                        //   child: _buildStatCard(
+                        //     'User ID',
+                        //     organData['Organization Id'] ?? 'N/A',
+                        //     Icons.account_balance_rounded,
+                        //     Colors.blueAccent,
+                        //   ),
+                        // ),
                         // Optional Details
                         if (organData['Organization address'] != null)
                           Container(

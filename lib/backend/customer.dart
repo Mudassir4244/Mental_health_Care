@@ -189,7 +189,7 @@ class Authentication {
   }
 
   // 🧩 SIGN OUT
-  Future<void> signOut(BuildContext context) async {
+  Future<void> signout(BuildContext context) async {
     try {
       await _auth.signOut();
       Navigator.push(context, MaterialPageRoute(builder: (_) => LoginScreen()));
