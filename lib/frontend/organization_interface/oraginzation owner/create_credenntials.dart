@@ -8,7 +8,7 @@ import 'package:mental_healthcare/backend/oraganization.dart';
 final isLoadingProvider = StateProvider<bool>((ref) => false);
 
 class CreateCredentialsScreen extends ConsumerStatefulWidget {
-  const CreateCredentialsScreen({super.key});
+  const CreateCredentialsScreen({super.key,});
 
   @override
   ConsumerState<CreateCredentialsScreen> createState() =>
@@ -263,3 +263,178 @@ class _CreateCredentialsScreenState
     );
   }
 }
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:flutter/material.dart';
+// import 'package:fluttertoast/fluttertoast.dart';
+
+// class CreateCredentialsScreen extends StatefulWidget {
+//   final Map<String, dynamic>? userData;
+//   final String? docId;
+
+//   const CreateCredentialsScreen({super.key, this.userData, this.docId});
+
+//   @override
+//   State<CreateCredentialsScreen> createState() =>
+//       _CreateCredentialsScreenState();
+// }
+
+// class _CreateCredentialsScreenState extends State<CreateCredentialsScreen> {
+//   final TextEditingController _usernameController = TextEditingController();
+//   final TextEditingController _emailController = TextEditingController();
+//   final TextEditingController _passwordController = TextEditingController();
+
+//   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+//   final FirebaseAuth _auth = FirebaseAuth.instance;
+
+//   bool isLoading = false;
+
+//   @override
+//   void initState() {
+//     super.initState();
+
+//     // Prefill for edit mode
+//     if (widget.userData != null) {
+//       _usernameController.text = widget.userData!['Username'] ?? '';
+//       _emailController.text = widget.userData!['Email'] ?? '';
+//       _passwordController.text = widget.userData!['Password'] ?? '';
+//     }
+//   }
+
+//   Future<void> saveUser() async {
+//     setState(() => isLoading = true);
+
+//     final currentUserId = _auth.currentUser?.uid;
+
+//     if (_usernameController.text.isEmpty ||
+//         _emailController.text.isEmpty ||
+//         _passwordController.text.isEmpty) {
+//       Fluttertoast.showToast(msg: 'All fields are required');
+//       setState(() => isLoading = false);
+//       return;
+//     }
+
+//     try {
+//       if (widget.docId == null) {
+//         // Create new user
+//         await _firestore.collection('Users').add({
+//           'Username': _usernameController.text,
+//           'Email': _emailController.text,
+//           'Password': _passwordController.text,
+//           'Created by': currentUserId,
+//           'role': 'Organization Employee',
+//         });
+//         Fluttertoast.showToast(msg: 'User added successfully');
+//       } else {
+//         // Update existing user
+//         await _firestore.collection('Users').doc(widget.docId).update({
+//           'Username': _usernameController.text,
+//           'Email': _emailController.text,
+//           'Password': _passwordController.text,
+//         });
+//         Fluttertoast.showToast(msg: 'User updated successfully');
+//       }
+
+//       Navigator.pop(context);
+//     } catch (e) {
+//       Fluttertoast.showToast(msg: 'Error: $e');
+//     }
+
+//     setState(() => isLoading = false);
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       body: Container(
+//         width: double.infinity,
+//         height: double.infinity,
+//         decoration: const BoxDecoration(
+//           gradient: LinearGradient(
+//             colors: [Color(0xFF1A73E8), Color(0xFF64B5F6)],
+//             begin: Alignment.topLeft,
+//             end: Alignment.bottomRight,
+//           ),
+//         ),
+//         child: SafeArea(
+//           child: Center(
+//             child: SingleChildScrollView(
+//               padding: const EdgeInsets.all(24),
+//               child: Column(
+//                 children: [
+//                   Text(
+//                     widget.docId == null ? "Create Credentials" : "Update User",
+//                     style: const TextStyle(
+//                       fontSize: 26,
+//                       color: Colors.white,
+//                       fontWeight: FontWeight.bold,
+//                     ),
+//                   ),
+//                   const SizedBox(height: 40),
+
+//                   TextField(
+//                     controller: _usernameController,
+//                     decoration: const InputDecoration(
+//                       labelText: 'Username',
+//                       filled: true,
+//                       fillColor: Colors.white,
+//                       border: OutlineInputBorder(),
+//                     ),
+//                   ),
+//                   const SizedBox(height: 20),
+//                   TextField(
+//                     controller: _emailController,
+//                     decoration: const InputDecoration(
+//                       labelText: 'Email',
+//                       filled: true,
+//                       fillColor: Colors.white,
+//                       border: OutlineInputBorder(),
+//                     ),
+//                   ),
+//                   const SizedBox(height: 20),
+//                   TextField(
+//                     controller: _passwordController,
+//                     decoration: const InputDecoration(
+//                       labelText: 'Password',
+//                       filled: true,
+//                       fillColor: Colors.white,
+//                       border: OutlineInputBorder(),
+//                     ),
+//                     obscureText: true,
+//                   ),
+//                   const SizedBox(height: 40),
+
+//                   isLoading
+//                       ? const CircularProgressIndicator(color: Colors.white)
+//                       : ElevatedButton(
+//                           onPressed: saveUser,
+//                           style: ElevatedButton.styleFrom(
+//                             backgroundColor: Colors.white,
+//                             foregroundColor: const Color(0xFF1A73E8),
+//                             padding: const EdgeInsets.symmetric(
+//                               horizontal: 80,
+//                               vertical: 16,
+//                             ),
+//                             shape: RoundedRectangleBorder(
+//                               borderRadius: BorderRadius.circular(14),
+//                             ),
+//                           ),
+//                           child: Text(
+//                             widget.docId == null
+//                                 ? 'Create User'
+//                                 : 'Update User',
+//                             style: const TextStyle(
+//                               fontSize: 18,
+//                               fontWeight: FontWeight.bold,
+//                             ),
+//                           ),
+//                         ),
+//                 ],
+//               ),
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
