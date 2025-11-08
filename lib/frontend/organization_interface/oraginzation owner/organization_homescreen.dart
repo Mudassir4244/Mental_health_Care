@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:get/get.dart';
 import 'package:mental_healthcare/backend/oraganization.dart';
 import 'package:mental_healthcare/frontend/organization_interface/widgets/organ_widigets.dart';
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
