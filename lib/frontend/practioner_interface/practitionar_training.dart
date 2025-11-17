@@ -200,7 +200,7 @@ class _PractitionarTrainingState extends State<PractitionarTraining>
           ),
         ),
       ),
-      bottomNavigationBar: prac_bottomNavbbar(currentScreen: 'Training'),
+      bottomNavigationBar: prac_bottomNavbbar(currentScreen: 'Training', clientData: {},),
     );
   }
 }

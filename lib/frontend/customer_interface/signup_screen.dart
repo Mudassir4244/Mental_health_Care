@@ -324,12 +324,10 @@ class _SignupScreenState extends State<SignupScreen> {
                       if (value == null || value.isEmpty) {
                         return "Please enter your password";
                       }
-                      if (value.length < 8) {
+                      if (value.length < 6) {
                         return "Password must be at least 8 characters";
                       }
-                      if (!RegExp(r'[A-Z]').hasMatch(value)) {
-                        return "Include at least one uppercase letter";
-                      }
+
                       // if (!RegExp(r'[0-9]').hasMatch(value)) {
                       //   return "Include at least one number";
                       // }

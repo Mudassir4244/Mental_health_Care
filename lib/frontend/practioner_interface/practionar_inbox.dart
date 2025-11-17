@@ -227,7 +227,7 @@ class _PractionarInboxState extends State<PractionarInbox>
           ),
         ),
       ),
-      bottomNavigationBar: prac_bottomNavbbar(currentScreen: 'Inbox'),
+      bottomNavigationBar: prac_bottomNavbbar(currentScreen: 'Inbox', clientData: {},),
     );
   }
 }

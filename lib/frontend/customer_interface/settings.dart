@@ -185,7 +185,7 @@ class _PractSettingsState extends State<PractSettings> {
           ],
         ),
       ),
-      bottomNavigationBar: prac_bottomNavbbar(currentScreen: 'Settings'),
+      bottomNavigationBar: prac_bottomNavbbar(currentScreen: 'Settings', clientData: {},),
     );
   }
 

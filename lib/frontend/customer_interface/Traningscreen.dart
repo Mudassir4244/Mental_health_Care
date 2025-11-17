@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mental_healthcare/frontend/customer_interface/homescreen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/quizscreen.dart';
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
 import 'package:mental_healthcare/frontend/widgets/widgets.dart';
@@ -77,7 +78,10 @@ class TrainingScreen extends StatelessWidget {
       appBar: AppBar(
         leading: GestureDetector(
           onTap: () {
-            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => HomeScreen()),
+            );
           },
           child: Icon(Icons.arrow_back_ios, fontWeight: FontWeight.bold),
         ),

@@ -1,23 +1,30 @@
 // ignore_for_file: dead_code
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mental_healthcare/backend/practionar.dart';
+import 'package:mental_healthcare/frontend/chats/inboxscreen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/checkin_screen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/insightscreen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/loginscreen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/settings.dart';
 import 'package:mental_healthcare/frontend/practioner_interface/prac_homescreen.dart';
 import 'package:mental_healthcare/frontend/practioner_interface/prac_profile.dart';
-import 'package:mental_healthcare/frontend/practioner_interface/practionar_inbox.dart';
 import 'package:mental_healthcare/frontend/practioner_interface/practitionar_training.dart';
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
+import 'package:provider/provider.dart';
 
 class WelcomeBanner extends StatelessWidget {
   final String name;
   final String message;
-
-  const WelcomeBanner({super.key, required this.name, required this.message});
+  final String currentuserID;
+  const WelcomeBanner({
+    super.key,
+    required this.name,
+    required this.message,
+    required this.currentuserID,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -151,7 +158,8 @@ class WelcomeBanner extends StatelessWidget {
 class prac_bottomNavbbar extends StatelessWidget {
   final String currentScreen;
   final auth = PracAuth();
-  prac_bottomNavbbar({super.key, required this.currentScreen});
+  final Map<String, dynamic> clientData;
+  prac_bottomNavbbar({super.key, required this.currentScreen, required this.clientData});
 
   // Navigation helper
   void _handleNavigation(BuildContext context, Widget screen) {
@@ -163,6 +171,8 @@ class prac_bottomNavbbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String currentuserId = FirebaseAuth.instance.currentUser!.uid;
+    final clients = Provider.of<PremiumClientProvider>(context);
     return Container(
       margin: const EdgeInsets.all(12),
       height: 75,
@@ -190,7 +200,10 @@ class prac_bottomNavbbar extends StatelessWidget {
             icon: Icons.message,
             label: "Inbox",
             isSelected: currentScreen == 'Inbox',
-            onTap: () => _handleNavigation(context, const PractionarInbox()),
+            onTap: () => _handleNavigation(
+              context,
+              InboxScreen(currentUserId: currentuserId, currentUsername: '', currentUserRole: '', clientData:  clientData,),
+            ),
           ),
           _NavItem(
             icon: Icons.model_training,
@@ -313,7 +326,6 @@ class _MydrawerState extends State<prac_drawer> {
                     title: Text('Activity Screen'),
                   ),
 
-                
                   Divider(),
 
                   ListTile(

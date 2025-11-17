@@ -147,6 +147,7 @@ class Authentication {
         await _firestore.collection('Users').doc(user.uid).set({
           'uid': user.uid,
           'email': email.trim(),
+          'payment Status': 'Pending',
           'username': username,
           'role': 'customer', // 👈 Assign role here
           'createdAt': FieldValue.serverTimestamp(),

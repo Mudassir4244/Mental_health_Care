@@ -229,7 +229,7 @@ class _LoginScreenState extends State<LoginScreen> {
           context,
           MaterialPageRoute(builder: (_) => const organ_owner_homescreen()),
         );
-      } else if (role == 'Oganization Employee') {
+      } else if (role == 'Organization Employee') {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => HomeScreen()),

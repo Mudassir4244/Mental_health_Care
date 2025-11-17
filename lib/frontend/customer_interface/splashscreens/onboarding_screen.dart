@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mental_healthcare/frontend/customer_interface/loginscreen.dart';
+import 'package:mental_healthcare/frontend/customer_interface/choice_screen.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
@@ -117,9 +117,7 @@ class OnboardingScreen extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
-                      ),
+                      MaterialPageRoute(builder: (context) => ChoiceScreen()),
                     );
                   },
                   child: Container(

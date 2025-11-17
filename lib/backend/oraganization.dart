@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:mental_healthcare/payment_process/stripe_services.dart';
 
 class OrganAuth {
@@ -215,18 +215,22 @@ class OrganAuth {
       }
 
       // ✅ Create new user with a secondary FirebaseAuth instance
-      final secondaryAuth = FirebaseAuth.instanceFor(
-        app: await Firebase.initializeApp(
-          name: 'SecondaryApp',
-          options: Firebase.app().options,
-        ),
-      );
+      // final secondaryAuth = FirebaseAuth.instanceFor(
+      //   app: await Firebase.initializeApp(
+      //     name: 'SecondaryApp',
+      //     options: Firebase.app().options,
+      //   ),
+      // );
 
-      final userCredential = await secondaryAuth.createUserWithEmailAndPassword(
+      final userCredential = await firebaseAuth.createUserWithEmailAndPassword(
         email: Useremail.trim(),
         password: Userpassword.trim(),
       );
-
+      final loginUser = await firebaseAuth
+          .signInWithEmailAndPassword(email: Useremail, password: Userpassword)
+          .then((value) {
+            Get.snackbar('Login', "  ");
+          });
       final newUser = userCredential.user;
 
       if (newUser != null) {

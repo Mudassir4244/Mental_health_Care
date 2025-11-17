@@ -211,7 +211,15 @@ class BottomNavBar extends StatelessWidget {
             icon: Icons.message,
             label: "Inbox",
             isSelected: currentScreen == 'Inbox',
-            onTap: () => _handleNavigation(context, const InboxScreen()),
+            onTap: () => _handleNavigation(
+              context,
+              const InboxScreen(
+                currentUserId: 'uid',
+                currentUsername: '',
+                currentUserRole: '',
+                clientData: {},
+              ),
+            ),
           ),
           _NavItem(
             icon: Icons.model_training,
