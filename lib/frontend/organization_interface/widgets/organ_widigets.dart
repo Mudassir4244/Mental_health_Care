@@ -4,9 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mental_healthcare/backend/customer.dart';
 import 'package:mental_healthcare/frontend/customer_interface/loginscreen.dart';
-import 'package:mental_healthcare/frontend/customer_interface/settings.dart';
+import 'package:mental_healthcare/app_settings_components/settings.dart';
 import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/added_users.dart';
-import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/organ_inbox.dart';
 import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/organ_profile.dart';
 import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/organization_homescreen.dart';
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
@@ -164,7 +163,12 @@ class organ_bottomNavbbar extends StatelessWidget {
       margin: const EdgeInsets.all(12),
       height: 75,
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        gradient: LinearGradient(
+          colors: [AppColors.primary, AppColors.accent],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
@@ -184,12 +188,12 @@ class organ_bottomNavbbar extends StatelessWidget {
             onTap: () =>
                 _handleNavigation(context, const organ_owner_homescreen()),
           ),
-          _NavItem(
-            icon: Icons.message,
-            label: "Inbox",
-            isSelected: currentScreen == 'Inbox',
-            onTap: () => _handleNavigation(context, const OrganationInbox()),
-          ),
+          // _NavItem(
+          //   icon: Icons.message,
+          //   label: "Inbox",
+          //   isSelected: currentScreen == 'Inbox',
+          //   onTap: () => _handleNavigation(context, const OrganationInbox()),
+          // ),
           // _NavItem(
           //   icon: Icons.model_training,
           //   label: "Training",

@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import 'package:mental_healthcare/backend/oraganization.dart';
+// import '../providers/loading_provider.dart';
+class LoadingProvider extends ChangeNotifier {
+  bool isLoading = false;
 
-/// 🌀 Riverpod State Provider for Loading
-final isLoadingProvider = StateProvider<bool>((ref) => false);
-
-class CreateCredentialsScreen extends ConsumerStatefulWidget {
-  const CreateCredentialsScreen({super.key,});
+  void setLoading(bool value) {
+    isLoading = value;
+    notifyListeners();
+  }
+}
+class CreateCredentialsScreen extends StatefulWidget {
+  const CreateCredentialsScreen({super.key});
 
   @override
-  ConsumerState<CreateCredentialsScreen> createState() =>
+  State<CreateCredentialsScreen> createState() =>
       _CreateCredentialsScreenState();
 }
 
-class _CreateCredentialsScreenState
-    extends ConsumerState<CreateCredentialsScreen> {
+class _CreateCredentialsScreenState extends State<CreateCredentialsScreen> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -26,15 +29,15 @@ class _CreateCredentialsScreenState
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = ref.watch(isLoadingProvider);
+    final loadingProvider = Provider.of<LoadingProvider>(context);
 
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFF0D47A1), // Dark Blue
-              Color(0xFF1976D2), // Medium Blue
+              Color(0xFF0D47A1),
+              Color(0xFF1976D2),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -44,7 +47,6 @@ class _CreateCredentialsScreenState
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
                   "Create Credentials",
@@ -52,32 +54,27 @@ class _CreateCredentialsScreenState
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
-                    letterSpacing: 1.2,
                   ),
                 ),
+
                 const SizedBox(height: 40),
 
-                // 🔹 Organization name (from Firestore)
+                // Organization name
                 FutureBuilder(
                   future: auth.fetch_organowner(context),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
-                      );
-                    } else if (snapshot.hasError) {
+                      return const CircularProgressIndicator(color: Colors.white);
+                    }
+                    if (snapshot.hasError) {
                       return const Text(
-                        'Error fetching organization data',
-                        style: TextStyle(color: Colors.redAccent),
-                      );
-                    } else if (!snapshot.hasData || snapshot.data == null) {
-                      return const Text(
-                        'No organization data found',
+                        "Error fetching organization",
                         style: TextStyle(color: Colors.white),
                       );
                     }
 
-                    final organName = snapshot.data!['Organization name'] ?? '';
+                    final organName =
+                        snapshot.data?["Organization name"] ?? "Organization";
 
                     return TextField(
                       readOnly: true,
@@ -86,17 +83,8 @@ class _CreateCredentialsScreenState
                         labelStyle: const TextStyle(color: Colors.white),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(
-                            width: 1.2,
-                            color: Colors.white54,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(
-                            width: 1.5,
-                            color: Colors.white,
-                          ),
-                          borderRadius: BorderRadius.circular(14),
+                          borderSide:
+                              const BorderSide(color: Colors.white54, width: 1.2),
                         ),
                         prefixIcon: const Icon(
                           Icons.account_balance_rounded,
@@ -112,24 +100,26 @@ class _CreateCredentialsScreenState
 
                 const SizedBox(height: 20),
 
-                // 🔹 Username
+                // Username
                 _buildTextField(
                   controller: usernameController,
                   label: "Username",
                   icon: Icons.person,
                 ),
+
                 const SizedBox(height: 20),
 
-                // 🔹 Email
+                // Email
                 _buildTextField(
                   controller: emailController,
                   label: "Email",
                   icon: Icons.email,
                   keyboardType: TextInputType.emailAddress,
                 ),
+
                 const SizedBox(height: 20),
 
-                // 🔹 Password
+                // Password
                 _buildTextField(
                   controller: passwordController,
                   label: "Password",
@@ -149,10 +139,10 @@ class _CreateCredentialsScreenState
                     },
                   ),
                 ),
+
                 const SizedBox(height: 40),
 
-                // 🔹 Button or Loader
-                isLoading
+                loadingProvider.isLoading
                     ? const CircularProgressIndicator(
                         color: Colors.white,
                         strokeWidth: 3,
@@ -164,14 +154,14 @@ class _CreateCredentialsScreenState
                               passwordController.text.isEmpty) {
                             Get.snackbar(
                               "Error",
-                              "All fields are required to create credentials",
+                              "All fields are required",
                               backgroundColor: Colors.white,
                               colorText: Colors.redAccent,
                             );
                             return;
                           }
 
-                          ref.read(isLoadingProvider.notifier).state = true;
+                          loadingProvider.setLoading(true);
 
                           try {
                             await auth.add_user(
@@ -183,36 +173,34 @@ class _CreateCredentialsScreenState
                             );
 
                             Get.snackbar(
-                              'Success ✅',
-                              "Credentials have been successfully created!",
+                              "Success",
+                              "Credentials created!",
                               backgroundColor: Colors.white,
                               colorText: Colors.blueAccent,
                             );
+
                             usernameController.clear();
-                            passwordController.clear();
                             emailController.clear();
-                          } catch (error) {
+                            passwordController.clear();
+                          } catch (e) {
                             Get.snackbar(
-                              'Error ❌',
-                              error.toString(),
+                              "Error",
+                              e.toString(),
                               backgroundColor: Colors.redAccent,
                               colorText: Colors.white,
                             );
                           }
 
-                          ref.read(isLoadingProvider.notifier).state = false;
+                          loadingProvider.setLoading(false);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.blueAccent,
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 60,
-                            vertical: 18,
-                          ),
+                              horizontal: 60, vertical: 18),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          elevation: 6,
                         ),
                         child: const Text(
                           "Create Credentials",
@@ -230,7 +218,6 @@ class _CreateCredentialsScreenState
     );
   }
 
-  /// 🔹 Reusable TextField Widget
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -263,6 +250,7 @@ class _CreateCredentialsScreenState
     );
   }
 }
+
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:flutter/material.dart';

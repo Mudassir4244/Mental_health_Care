@@ -1,299 +1,297 @@
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:flutter/material.dart';
+// import 'package:mental_healthcare/frontend/customer_interface/therapist_details.dart';
+// import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
+
+// class FindingTherapist extends StatefulWidget {
+//   const FindingTherapist({super.key});
+
+//   @override
+//   State<FindingTherapist> createState() => _FindingTherapistState();
+// }
+
+// class _FindingTherapistState extends State<FindingTherapist> {
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       backgroundColor: Colors.grey[100],
+//       appBar: AppBar(
+//         elevation: 0,
+//         centerTitle: true,
+//         title: const Text(
+//           'Find a Practitioner',
+//           style: TextStyle(fontWeight: FontWeight.bold),
+//         ),
+//         leading: IconButton(
+//           icon: const Icon(
+//             Icons.arrow_back_ios,
+//             color: AppColors.textColorPrimary,
+//           ),
+//           onPressed: () => Navigator.pop(context),
+//         ),
+//       ),
+
+//       // ---- FUTURE BUILDER ----
+//       body: FutureBuilder(
+//         future: FirebaseFirestore.instance
+//             .collection('Users')
+//             .where('role', isEqualTo: 'Practitioner')
+//             .get()
+//             .then(
+//               (snapshot) => snapshot.docs.map((doc) => doc.data()).toList(),
+//             ),
+//         builder: (context, snapshot) {
+//           if (snapshot.connectionState == ConnectionState.waiting) {
+//             return const Center(child: CircularProgressIndicator());
+//           }
+
+//           if (snapshot.hasError) {
+//             return Center(child: Text("Error: ${snapshot.error}"));
+//           }
+
+//           if (!snapshot.hasData || snapshot.data!.isEmpty) {
+//             return const Center(child: Text("No practitioners found."));
+//           }
+
+//           final data = snapshot.data!;
+
+//           return ListView.builder(
+//             padding: const EdgeInsets.all(16),
+//             itemCount: data.length,
+//             itemBuilder: (context, index) {
+//               final practitioner = data[index];
+
+//               return Container(
+//                 margin: const EdgeInsets.only(bottom: 16),
+//                 padding: const EdgeInsets.all(16),
+//                 decoration: BoxDecoration(
+//                   color: Colors.white,
+//                   borderRadius: BorderRadius.circular(18),
+//                   boxShadow: [
+//                     BoxShadow(
+//                       color: Colors.black12,
+//                       blurRadius: 10,
+//                       offset: const Offset(0, 4),
+//                     ),
+//                   ],
+//                 ),
+//                 child: Row(
+//                   children: [
+//                     // --- Profile Avatar ---
+//                     Container(
+//                       padding: const EdgeInsets.all(12),
+//                       decoration: BoxDecoration(
+//                         color: Colors.blue[50],
+//                         shape: BoxShape.circle,
+//                       ),
+//                       child: const Icon(
+//                         Icons.person,
+//                         size: 30,
+//                         color: Colors.blue,
+//                       ),
+//                     ),
+
+//                     const SizedBox(width: 16),
+
+//                     // --- Name and Speciality ---
+//                     Expanded(
+//                       child: Column(
+//                         crossAxisAlignment: CrossAxisAlignment.start,
+//                         children: [
+//                           Text(
+//                             practitioner['username'] ?? "Unknown",
+//                             style: const TextStyle(
+//                               fontSize: 18,
+//                               fontWeight: FontWeight.bold,
+//                             ),
+//                           ),
+//                           const SizedBox(height: 4),
+//                           Text(
+//                             practitioner['Speciality'] ?? "No Specialty",
+//                             style: TextStyle(
+//                               fontSize: 14,
+//                               color: Colors.grey[600],
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+
+//                     // Arrow button
+//                     IconButton(
+//                       icon: const Icon(Icons.arrow_forward_ios_rounded),
+//                       color: Colors.grey[700],
+//                       onPressed: () {
+//                         Navigator.push(
+//                           context,
+//                           MaterialPageRoute(
+//                             builder: (_) =>
+//                                 TherapistDetails(data: practitioner),
+//                           ),
+//                         );
+//                       },
+//                     ),
+//                   ],
+//                 ),
+//               );
+//             },
+//           );
+//         },
+//       ),
+//     );
+//   }
+// }
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:mental_healthcare/frontend/customer_interface/therapist_details.dart';
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
-import 'package:mental_healthcare/frontend/widgets/widgets.dart';
 
-// --- Data Models ---
-class Therapist {
-  final String name;
-  final String specialty;
-  final String imageUrl;
-  // final Icon icon;
-
-  const Therapist({
-    required this.name,
-    required this.specialty,
-    required this.imageUrl,
-  });
-}
-
-// --- Resources Screen Implementation ---
-
-class FindingTherapist extends StatelessWidget {
-  final String title = 'Resources';
+class FindingTherapist extends StatefulWidget {
   const FindingTherapist({super.key});
 
-  final List<Therapist> mockTherapists = const [
-    Therapist(
-      name: 'Dr. Alex M.',
-      specialty: 'Specializes in anxiety and depression',
-      imageUrl:
-          'https://www.shutterstock.com/image-photo/portrait-mature-doctor-standing-hospital-260nw-694854949.jpg',
-    ),
-    Therapist(
-      name: 'Dr. Casey M.',
-      specialty: 'Specializes in anxiety and depression',
-      imageUrl:
-          'https://static1.squarespace.com/static/54d50ceee4b05797b34869cf/54de4dcae4b05ae6225b992c/63656097c3d95d53f7295f93/1667589125700/bigstock-Doctor-physician--Isolated-ov-33908342.jpg?format=1500w',
-    ),
-    Therapist(
-      name: 'Dr. Fahad R.',
-      specialty: 'Specializes in anxiety and depression',
-      imageUrl:
-          'https://e7.pngegg.com/pngimages/396/707/png-clipart-health-care-physician-family-medicine-nursing-real-doctor-service-medicine-thumbnail.png',
-    ),
-    Therapist(
-      name: 'Dr. Emily S.',
-      specialty: 'Specializes in grief and trauma',
-      imageUrl:
-          'https://img1.wsimg.com/isteam/stock/3719/:/rs=w:600,h:300,cg:true,m/cr=w:600,h:300',
-    ),
-  ];
+  @override
+  State<FindingTherapist> createState() => _FindingTherapistState();
+}
+
+class _FindingTherapistState extends State<FindingTherapist> {
+  List<Map<String, dynamic>> practitioners = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchPractitioners(); // Fetch only 1st time
+  }
+
+  // --- Fetch function ---
+  Future<void> fetchPractitioners() async {
+    setState(() => isLoading = true);
+
+    final snapshot = await FirebaseFirestore.instance
+        .collection('Users')
+        .where('role', isEqualTo: 'Practitioner')
+        .get();
+
+    practitioners = snapshot.docs.map((doc) => doc.data()).toList();
+
+    setState(() => isLoading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.stripedColor,
-      body: Stack(
-        children: [
-          // const _StripedBackground(),
-          SafeArea(
-            bottom: false,
-            child: Column(
-              children: [
-                const _CustomAppBar(),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 10),
-                        const _ZipCodeSearch(),
-                        const SizedBox(height: 15),
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          'Find a Practitioner',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.textColorPrimary,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
 
-                        // Map Placeholder
-                        const _MapPlaceholder(),
-                        const SizedBox(height: 25),
+      // Pull-to-refresh wrapper
+      body: RefreshIndicator(
+        onRefresh: fetchPractitioners, // Refresh when swiped down
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : practitioners.isEmpty
+            ? const Center(child: Text("No practitioners found."))
+            : ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: practitioners.length,
+                itemBuilder: (context, index) {
+                  final practitioner = practitioners[index];
 
-                        // Nearby Practitioners Section
-                        const Text(
-                          'Nearby Practitioners',
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                  return GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => TherapistDetails(data: practitioner),
+                      ),
+                    ),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
-                        ),
-                        const SizedBox(height: 15),
-
-                        // Therapist List
-                        ...mockTherapists.map(
-                          (therapist) => Padding(
-                            padding: const EdgeInsets.only(bottom: 15.0),
-                            child: TherapistTile(therapist: therapist),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          // Avatar
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.blue[50],
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.person,
+                              size: 30,
+                              color: Colors.blue,
+                            ),
                           ),
-                        ),
 
-                        const SizedBox(
-                          height: 100,
-                        ), // Padding above the bottom nav bar
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: BottomNavBar(currentScreen: title),
-          ),
-        ],
-      ),
-    );
-  }
-}
+                          const SizedBox(width: 16),
 
-// --- Custom Widgets for Resources Screen ---
+                          // Info
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  practitioner['username'] ?? "Unknown",
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  practitioner['Speciality'] ?? "No Specialty",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
 
-class _CustomAppBar extends StatelessWidget {
-  const _CustomAppBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 350),
-      child: IconButton(
-        icon: const Icon(
-          Icons.arrow_back_ios,
-          color: AppColors.textColorPrimary,
-          size: 24,
-        ),
-        onPressed: () => Navigator.pop(context),
-      ),
-    );
-  }
-}
-
-class _ZipCodeSearch extends StatelessWidget {
-  const _ZipCodeSearch();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: 'Enter Zip Code...',
-          hintStyle: TextStyle(
-            color: AppColors.textColorSecondary.withOpacity(0.6),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 15.0,
-            horizontal: 20.0,
-          ),
-          border: InputBorder.none,
-          suffixIcon: Container(
-            margin: const EdgeInsets.all(8.0),
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.search, color: Colors.white),
-          ),
-        ),
-        keyboardType: TextInputType.number,
-      ),
-    );
-  }
-}
-
-class _MapPlaceholder extends StatelessWidget {
-  const _MapPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 300,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.grey[200], // Light grey background for map
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: AppColors.stripedColor, width: 1),
-        image: const DecorationImage(
-          image: NetworkImage(
-            'https://www.sparxsys.com/sites/default/files/sampleMap.JPG',
-          ),
-          fit: BoxFit.cover,
-        ),
-      ),
-      alignment: Alignment.center,
-      child: Icon(
-        Icons.location_on,
-        color: AppColors.error, // Red pin color
-        size: 50,
-      ),
-    );
-  }
-}
-
-class TherapistTile extends StatelessWidget {
-  final Therapist therapist;
-  const TherapistTile({super.key, required this.therapist});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: AppColors.cardColor,
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: InkWell(
-        onTap: () {
-          Get.snackbar(
-            duration: Duration(seconds: 2),
-            backgroundColor: Colors.white,
-            'Practitioner Profile',
-            "Viewing profile for ${therapist.name}",
-          );
-          // ScaffoldMessenger.of(context).showSnackBar(
-          //   SnackBar(content: Text('Viewing profile for ${therapist.name}')),
-          // );
-        },
-        borderRadius: BorderRadius.circular(15),
-        child: Padding(
-          padding: const EdgeInsets.all(15.0),
-          child: Row(
-            children: [
-              // Avatar
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  therapist.imageUrl,
-                  width: 60,
-                  height: 60,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              const SizedBox(width: 15),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title
-                    Text(
-                      'Therapist',
-                      style: TextStyle(
-                        color: AppColors.textColorSecondary,
-                        fontSize: 12,
+                          IconButton(
+                            icon: const Icon(Icons.arrow_forward_ios_rounded),
+                            color: Colors.grey[700],
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      TherapistDetails(data: practitioner),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     ),
-                    // Name
-                    Text(
-                      therapist.name,
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    // Specialty
-                    Text(
-                      therapist.specialty,
-                      style: TextStyle(
-                        color: AppColors.textColorSecondary.withOpacity(0.8),
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
-
-              // Chevron Icon
-              const Padding(
-                padding: EdgeInsets.only(left: 10.0),
-                child: Icon(
-                  Icons.chevron_right,
-                  color: AppColors.textColorSecondary,
-                  size: 28,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

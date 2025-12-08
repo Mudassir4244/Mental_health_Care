@@ -1,9 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+
+import 'package:mental_healthcare/frontend/chats/screens/chat_list_screen.dart';
+import 'package:mental_healthcare/frontend/customer_interface/profilescreen.dart';
 import 'package:mental_healthcare/frontend/widgets/widgets.dart'
     hide WelcomeBanner;
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
+import 'package:provider/provider.dart';
 
 // --- Color Definitions (Re-added for self-contained file) ---
 
@@ -17,6 +22,10 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     DateTime? lastPressed;
+    Map<String, dynamic>? profile;
+    final name = FirebaseAuth.instance.currentUser!.displayName;
+    final provider = Provider.of<ProfileProvider>(context);
+    final data = provider.profile;
     return WillPopScope(
       onWillPop: () async {
         final now = DateTime.now();
@@ -32,6 +41,7 @@ class HomeScreen extends StatelessWidget {
         SystemNavigator.pop();
         return false; // Exit app
       },
+
       child: Scaffold(
         appBar: AppBar(
           iconTheme: IconThemeData(color: AppColors.cardColor),
@@ -43,12 +53,31 @@ class HomeScreen extends StatelessWidget {
               icon: const Icon(Icons.menu),
             ),
           ),
+          actions: [
+            IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => InboxScreen()),
+                );
+              },
+              icon: Icon(Icons.near_me_rounded),
+            ),
+          ],
           centerTitle: true,
           title: const Text(
             'MindAssist',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
-          backgroundColor: AppColors.primary,
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.primary, AppColors.accent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
         ),
         backgroundColor: AppColors.background,
         drawer: Mydrawer(), // ✅ Your custom drawer
@@ -65,15 +94,24 @@ class HomeScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(20.0),
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      gradient: LinearGradient(
+                        colors: [AppColors.primary, AppColors.accent],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Hello Peter!',
-                          style: TextStyle(
+                        Text(
+                          'Hello $name \nWellcome Back!',
+                          // 'Hello Peter!',
+                          // profile != null
+                          //     ? 'Hello ${data?['username']}!'
+                          //     : 'Hello User!',
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 24,
                             fontWeight: FontWeight.bold,

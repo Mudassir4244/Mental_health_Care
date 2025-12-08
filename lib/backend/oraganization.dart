@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names, use_build_context_synchronously, unused_local_variable
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -71,6 +73,7 @@ class OrganAuth {
         SnackBar(
           content: Text('Error: ${e.toString()}'),
           backgroundColor: Colors.red,
+          // duration: Duration(seconds: 30),
         ),
       );
       return null;
@@ -238,8 +241,8 @@ class OrganAuth {
         await firestore.collection("Users").doc(newUser.uid).set({
           "Created by": currentOwner.uid,
           "Organization name": organizationName,
-          "Username": Username.trim(),
-          "Email": Useremail.trim(),
+          "username": Username.trim(),
+          "email": Useremail.trim(),
           "Password": Userpassword.trim(),
           "role": "Organization Employee",
           "Payment Status": payment_status,
@@ -283,6 +286,4 @@ class OrganAuth {
       );
     }
   }
-
-  // ignore: non_constant_identifier_names
 }

@@ -141,66 +141,86 @@ class _PractitionarTrainingState extends State<PractitionarTraining>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xfff8f9fb),
-      appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.white),
-        leading: IconButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => PracHomescreen()),
-            );
-          },
-          icon: Icon(Icons.arrow_back_ios),
-        ),
-        elevation: 4,
-        title: const Text(
-          'Practitioner Training',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => PracHomescreen()),
+        );
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xfff8f9fb),
+        appBar: AppBar(
+          iconTheme: IconThemeData(color: Colors.white),
+          leading: IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => PracHomescreen()),
+              );
+            },
+            icon: Icon(Icons.arrow_back_ios),
+          ),
+          elevation: 4,
+          title: const Text(
+            'Practitioner Training',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          centerTitle: true,
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.primary, AppColors.accent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
           ),
         ),
-        centerTitle: true,
-        backgroundColor: AppColors.primary,
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xffe9f5ff), Color(0xfff8f9fb)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xffe9f5ff), Color(0xfff8f9fb)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ListView(
-            physics: const BouncingScrollPhysics(),
-            children: [
-              const Text(
-                'Welcome Back 👋',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xff222B45),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ListView(
+              physics: const BouncingScrollPhysics(),
+              children: [
+                const Text(
+                  'Welcome Back 👋',
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xff222B45),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Continue your professional growth with engaging modules.',
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-              ),
-              const SizedBox(height: 20),
-              ..._trainingModules.asMap().entries.map(
-                (entry) => _buildTrainingCard(entry.value, entry.key),
-              ),
-            ],
+                const SizedBox(height: 6),
+                Text(
+                  'Continue your professional growth with engaging modules.',
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                ),
+                const SizedBox(height: 20),
+                ..._trainingModules.asMap().entries.map(
+                  (entry) => _buildTrainingCard(entry.value, entry.key),
+                ),
+              ],
+            ),
           ),
         ),
+        bottomNavigationBar: prac_bottomNavbbar(
+          currentScreen: 'Training',
+          clientData: {},
+        ),
       ),
-      bottomNavigationBar: prac_bottomNavbbar(currentScreen: 'Training', clientData: {},),
     );
   }
 }

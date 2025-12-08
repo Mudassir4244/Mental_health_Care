@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color primary = Colors.lightBlue;
+  static const Color primary = Color.fromARGB(255, 3, 95, 244);
   // static late Color primary =
   //     LinearGradient(
   //           colors: [Color(0xFF1A73E8), Color(0xFF64B5F6)],

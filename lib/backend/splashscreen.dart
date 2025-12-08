@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mental_healthcare/admin/admin_homescreen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/homescreen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/loginscreen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/splashscreens/onboarding_screen.dart';
@@ -35,20 +36,31 @@ class _SplashScreenState extends State<SplashScreen> {
 
       if (doc.exists) {
         final role = doc['role'];
+        final payementStatus = doc['Payment Status'];
         if (role == 'customer') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const HomeScreen()),
           );
-        } else if (role == 'Organization Owner') {
+        } else if (role == 'Organization Owner' && payementStatus == 'Completed') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const organ_owner_homescreen()),
           );
-        } else if (role == 'Practionar') {
+        } else if (role == 'Organization Employee') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        } else if (role == 'Practitioner' && payementStatus == 'Completed') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const PracHomescreen()),
+          );
+        } else if (role == 'Admin') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const AdminHomescreen()),
           );
         } else {
           Navigator.pushReplacement(

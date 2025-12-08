@@ -120,35 +120,37 @@ class OnboardingScreen extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => ChoiceScreen()),
                     );
                   },
-                  child: Container(
-                    height: 60,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFF007BFF), // Bright royal blue
-                          Color(0xFF0040FF), // Deep royal
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.25),
-                          offset: const Offset(0, 4),
-                          blurRadius: 10,
+                  child: Flexible(
+                    child: Container(
+                      height: 60,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF007BFF), // Bright royal blue
+                            Color(0xFF0040FF), // Deep royal
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'Get Started',
-                        style: TextStyle(
-                          fontSize: 19,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.25),
+                            offset: const Offset(0, 4),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'Get Started',
+                          style: TextStyle(
+                            fontSize: 19,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
                         ),
                       ),
                     ),

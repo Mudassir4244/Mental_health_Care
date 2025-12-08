@@ -78,24 +78,23 @@ class PracAuth {
 
     try {
       // ✅ Create the user directly
-      final userCredentials = await firebaseauth
-          .createUserWithEmailAndPassword(
-            email: email.trim(),
-            password: Password.trim(),
-          );
+      final userCredentials = await firebaseauth.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: Password.trim(),
+      );
 
       User? user = userCredentials.user;
 
       if (user != null) {
         await firestore.collection("Users").doc(user.uid).set({
           'uid': user.uid,
-          'Email': email.trim(),
-          'Fullname': Fullname.trim(),
+          'email': email.trim(),
+          'username': Fullname.trim(),
           'Phone Number': Contact_no.trim(),
           'Speciality': Speciality.trim(),
           'Experience': Experience.trim(),
           'Payment Status': 'Pending',
-          'role': 'Practionar', // 👈 Assign role here
+          'role': 'Practitioner', // 👈 Assign role here
 
           'createdAt': FieldValue.serverTimestamp(),
         });
@@ -173,7 +172,7 @@ class PracAuth {
           .doc(user.uid)
           .get();
 
-      if (snapshot.exists && snapshot.data()?['role'] == "Practionar") {
+      if (snapshot.exists && snapshot.data()?['role'] == "Practitioner") {
         return snapshot.data();
       } else {
         return null;
@@ -198,8 +197,8 @@ class PracAuth {
 
       // ✅ Update Firestore user document
       await _firestore.collection('Users').doc(user.uid).update({
-        if (updatedData['Fullname'] != null)
-          'Fullname': updatedData['Fullname'],
+        if (updatedData['username'] != null)
+          'username': updatedData['username'],
         if (updatedData['email'] != null) 'email': updatedData['email'],
         if (updatedData['role'] != null) 'role': updatedData['role'],
       });
@@ -265,7 +264,13 @@ class PracAuth {
   // 🧩 Current user getter
   User? get currentUser => _auth.currentUser;
 
-  void fetching_user() {}
+  void fetching_user() {
+    FirebaseFirestore.instance
+        .collection('Users')
+        .where('role', isEqualTo: 'Practionar')
+        .get();
+  }
+
   // 🧩 Error handling helper
   void _showError(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(

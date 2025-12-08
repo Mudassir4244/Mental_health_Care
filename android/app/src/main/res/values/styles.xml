@@ -9,15 +9,23 @@
 
     <!-- Main app theme (used after Flutter starts) -->
     <style name="NormalTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Set background color -->
-        <item name="android:windowBackground">?android:colorBackground</item>
+        <!-- Set solid background color to avoid Stripe initialization issues -->
+        <item name="android:windowBackground">@android:color/white</item>
 
-        <!-- Use built-in Android colors to avoid missing resource errors -->
+        <!-- Primary colors -->
         <item name="colorPrimary">@android:color/holo_blue_light</item>
         <item name="colorPrimaryVariant">@android:color/holo_blue_dark</item>
         <item name="colorOnPrimary">@android:color/white</item>
+
+        <!-- Secondary colors -->
         <item name="colorSecondary">@android:color/holo_green_light</item>
         <item name="colorOnSecondary">@android:color/black</item>
+
+        <!-- Optional: accent color -->
+        <item name="colorAccent">@android:color/holo_orange_light</item>
+
+        <!-- Optional: status bar color -->
+        <item name="android:statusBarColor">@android:color/holo_blue_dark</item>
     </style>
 
-</resources>
+</resources> 

@@ -471,7 +471,10 @@ class PracProfileProvider extends ChangeNotifier {
     await fetchProfile(context);
   }
 
-  Future<void> updateProfile(BuildContext context, Map<String, dynamic> newData) async {
+  Future<void> updateProfile(
+    BuildContext context,
+    Map<String, dynamic> newData,
+  ) async {
     await _auth.update_practionar(context, newData);
     await refreshProfile(context);
   }
@@ -508,7 +511,15 @@ class PracProfile extends StatelessWidget {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: AppColors.primary,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.primary, AppColors.accent],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         elevation: 4,
       ),
 
@@ -544,7 +555,7 @@ class PracProfile extends StatelessWidget {
 
                     // Name & Specialty
                     Text(
-                      data['Fullname'] ?? 'No Name',
+                      data['username'] ?? 'No Name',
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -614,7 +625,9 @@ class PracProfile extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 28, vertical: 14),
+                          horizontal: 28,
+                          vertical: 14,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
@@ -640,14 +653,22 @@ class PracProfile extends StatelessWidget {
         },
       ),
 
-      bottomNavigationBar: prac_bottomNavbbar(currentScreen: 'Profile', clientData: {},),
+      bottomNavigationBar: prac_bottomNavbbar(
+        currentScreen: 'Profile',
+        clientData: {},
+      ),
     );
   }
 
   // ─────────────────────────────────────────────
   // WIDGET HELPERS
   // ─────────────────────────────────────────────
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -739,51 +760,74 @@ class PracProfile extends StatelessWidget {
         children: [
           ListTile(
             leading: const Icon(Icons.email, color: Colors.blue),
-            title: Text(data['Email'] ?? 'N/A'),
+            title: Text(data['email'] ?? 'N/A'),
           ),
           ListTile(
             leading: const Icon(Icons.phone, color: Colors.green),
             title: Text(data['Phone Number'] ?? 'N/A'),
           ),
+          ListTile(title: Text(data['uid'] ?? 'N/A')),
         ],
       ),
     );
   }
 
   void _showEditDialog(
-      BuildContext context, Map<String, dynamic> data, PracProfileProvider provider) {
-    final nameController = TextEditingController(text: data['Fullname']);
-    final emailController = TextEditingController(text: data['Email']);
-    final specialityController = TextEditingController(text: data['Speciality']);
+    BuildContext context,
+    Map<String, dynamic> data,
+    PracProfileProvider provider,
+  ) {
+    final nameController = TextEditingController(text: data['username']);
+    final emailController = TextEditingController(text: data['email']);
+    final specialityController = TextEditingController(
+      text: data['Speciality'],
+    );
     final phoneController = TextEditingController(text: data['Phone Number']);
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Edit Profile", style: TextStyle(fontWeight: FontWeight.bold)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text(
+            "Edit Profile",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(labelText: "Full Name", prefixIcon: Icon(Icons.person)),
+                decoration: const InputDecoration(
+                  labelText: "Full Name",
+                  prefixIcon: Icon(Icons.person),
+                ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: emailController,
-                decoration: const InputDecoration(labelText: "Email", prefixIcon: Icon(Icons.email)),
+                decoration: const InputDecoration(
+                  labelText: "Email",
+                  prefixIcon: Icon(Icons.email),
+                ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: specialityController,
-                decoration: const InputDecoration(labelText: "Speciality", prefixIcon: Icon(Icons.work)),
+                decoration: const InputDecoration(
+                  labelText: "Speciality",
+                  prefixIcon: Icon(Icons.work),
+                ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: phoneController,
-                decoration: const InputDecoration(labelText: "Phone Number", prefixIcon: Icon(Icons.phone)),
+                decoration: const InputDecoration(
+                  labelText: "Phone Number",
+                  prefixIcon: Icon(Icons.phone),
+                ),
               ),
             ],
           ),
@@ -795,18 +839,29 @@ class PracProfile extends StatelessWidget {
             ElevatedButton(
               onPressed: () async {
                 await provider.updateProfile(context, {
-                  'Fullname': nameController.text.trim(),
-                  'Email': emailController.text.trim(),
+                  'username': nameController.text.trim(),
+                  'email': emailController.text.trim(),
                   'role': data['role'],
                   'Phone Number': phoneController.text.trim(),
                   'Speciality': specialityController.text.trim(),
                 });
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("✅ Profile updated successfully")),
+                  const SnackBar(
+                    content: Text("✅ Profile updated successfully"),
+                  ),
                 );
               },
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+              style: ElevatedButton.styleFrom(
+                // backgroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
               child: const Text("Save"),
             ),
           ],

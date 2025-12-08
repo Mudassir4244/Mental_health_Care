@@ -4,11 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mental_healthcare/backend/practionar.dart';
-import 'package:mental_healthcare/frontend/chats/inboxscreen.dart';
-import 'package:mental_healthcare/frontend/customer_interface/checkin_screen.dart';
+import 'package:mental_healthcare/frontend/customer_interface/Activityscreeen.dart';
+import 'package:mental_healthcare/frontend/customer_interface/finding_therapist.dart';
 import 'package:mental_healthcare/frontend/customer_interface/insightscreen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/loginscreen.dart';
-import 'package:mental_healthcare/frontend/customer_interface/settings.dart';
+import 'package:mental_healthcare/app_settings_components/settings.dart';
 import 'package:mental_healthcare/frontend/practioner_interface/prac_homescreen.dart';
 import 'package:mental_healthcare/frontend/practioner_interface/prac_profile.dart';
 import 'package:mental_healthcare/frontend/practioner_interface/practitionar_training.dart';
@@ -159,7 +159,11 @@ class prac_bottomNavbbar extends StatelessWidget {
   final String currentScreen;
   final auth = PracAuth();
   final Map<String, dynamic> clientData;
-  prac_bottomNavbbar({super.key, required this.currentScreen, required this.clientData});
+  prac_bottomNavbbar({
+    super.key,
+    required this.currentScreen,
+    required this.clientData,
+  });
 
   // Navigation helper
   void _handleNavigation(BuildContext context, Widget screen) {
@@ -177,7 +181,12 @@ class prac_bottomNavbbar extends StatelessWidget {
       margin: const EdgeInsets.all(12),
       height: 75,
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        gradient: LinearGradient(
+          colors: [AppColors.primary, AppColors.accent],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
@@ -196,15 +205,12 @@ class prac_bottomNavbbar extends StatelessWidget {
             isSelected: currentScreen == 'Home',
             onTap: () => _handleNavigation(context, const PracHomescreen()),
           ),
-          _NavItem(
-            icon: Icons.message,
-            label: "Inbox",
-            isSelected: currentScreen == 'Inbox',
-            onTap: () => _handleNavigation(
-              context,
-              InboxScreen(currentUserId: currentuserId, currentUsername: '', currentUserRole: '', clientData:  clientData,),
-            ),
-          ),
+          // _NavItem(
+          //   icon: Icons.message,
+          //   label: "Inbox",
+          //   isSelected: currentScreen == 'Inbox',
+          //   onTap: () => _handleNavigation(context, Inboxscreen()),
+          // ),
           _NavItem(
             icon: Icons.model_training,
             label: "Training",
@@ -285,7 +291,14 @@ class _MydrawerState extends State<prac_drawer> {
         child: Column(
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(color: AppColors.primary),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, AppColors.accent],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+
               child: Align(
                 alignment: Alignment.bottomLeft,
                 child: Text(
@@ -307,7 +320,7 @@ class _MydrawerState extends State<prac_drawer> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => InsightsScreen()),
+                        MaterialPageRoute(builder: (_) => Insightscreen()),
                       );
                     },
                     leading: Icon(Icons.bookmark),
@@ -319,7 +332,7 @@ class _MydrawerState extends State<prac_drawer> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => ActivityScreen()),
+                        MaterialPageRoute(builder: (_) => FullActivityScreen()),
                       );
                     },
                     leading: Icon(Icons.local_activity),
@@ -327,7 +340,17 @@ class _MydrawerState extends State<prac_drawer> {
                   ),
 
                   Divider(),
-
+                  ListTile(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => FindingTherapist()),
+                      );
+                    },
+                    leading: Icon(Icons.person),
+                    title: Text('Other Practitioner'),
+                  ),
+                  Divider(),
                   ListTile(
                     onTap: () {
                       Navigator.push(

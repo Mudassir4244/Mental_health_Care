@@ -1,18 +1,18 @@
 // ignore_for_file: dead_code
 
 import 'package:flutter/material.dart';
+import 'package:mental_healthcare/admin/admin_homescreen.dart';
 import 'package:mental_healthcare/backend/customer.dart';
 import 'package:mental_healthcare/frontend/customer_interface/Traningscreen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/checkin.dart';
-import 'package:mental_healthcare/frontend/customer_interface/checkin_screen.dart';
+import 'package:mental_healthcare/frontend/customer_interface/Activityscreeen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/helpnow.dart';
 import 'package:mental_healthcare/frontend/customer_interface/homescreen.dart';
-import 'package:mental_healthcare/frontend/chats/inboxscreen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/insightscreen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/profilescreen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/quizscreen.dart';
-import 'package:mental_healthcare/frontend/customer_interface/resources_screen.dart';
-import 'package:mental_healthcare/frontend/customer_interface/settings.dart';
+import 'package:mental_healthcare/resources/resources_screen.dart';
+import 'package:mental_healthcare/app_settings_components/settings.dart';
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
 
 class WelcomeBanner extends StatelessWidget {
@@ -188,7 +188,12 @@ class BottomNavBar extends StatelessWidget {
       margin: const EdgeInsets.all(12),
       height: 75,
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        gradient: LinearGradient(
+          colors: [AppColors.primary, AppColors.accent],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
@@ -207,20 +212,12 @@ class BottomNavBar extends StatelessWidget {
             isSelected: currentScreen == 'Home',
             onTap: () => _handleNavigation(context, const HomeScreen()),
           ),
-          _NavItem(
-            icon: Icons.message,
-            label: "Inbox",
-            isSelected: currentScreen == 'Inbox',
-            onTap: () => _handleNavigation(
-              context,
-              const InboxScreen(
-                currentUserId: 'uid',
-                currentUsername: '',
-                currentUserRole: '',
-                clientData: {},
-              ),
-            ),
-          ),
+          // _NavItem(
+          //   icon: Icons.message,
+          //   label: "Inbox",
+          //   isSelected: currentScreen == 'Inbox',
+          //   onTap: () => _handleNavigation(context, Inboxscreen()),
+          // ),
           _NavItem(
             icon: Icons.model_training,
             label: "Training",
@@ -301,7 +298,13 @@ class _MydrawerState extends State<Mydrawer> {
         child: Column(
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(color: AppColors.primary),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, AppColors.accent],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
               child: Align(
                 alignment: Alignment.bottomLeft,
                 child: Text(
@@ -320,7 +323,7 @@ class _MydrawerState extends State<Mydrawer> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => InsightsScreen()),
+                  MaterialPageRoute(builder: (_) => Insightscreen()),
                 );
               },
               leading: const Icon(Icons.bookmark),
@@ -331,7 +334,7 @@ class _MydrawerState extends State<Mydrawer> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => ActivityScreen()),
+                  MaterialPageRoute(builder: (_) => FullActivityScreen()),
                 );
               },
               leading: const Icon(Icons.local_activity),
@@ -349,6 +352,17 @@ class _MydrawerState extends State<Mydrawer> {
               leading: const Icon(Icons.quiz),
             ),
             const Divider(),
+            ListTile(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AdminHomescreen()),
+                );
+              },
+              title: const Text('Admin'),
+              leading: const Icon(Icons.admin_panel_settings),
+            ),
+            Divider(),
             ListTile(
               onTap: () {
                 Navigator.push(

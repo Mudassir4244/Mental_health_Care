@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:mental_healthcare/frontend/practioner_interface/widgets/pract_custom_wdgets.dart';
+import 'package:mental_healthcare/app_settings_components/edit_profile.dart';
+import 'package:mental_healthcare/app_settings_components/manage_subscription.dart';
+import 'package:mental_healthcare/app_settings_components/privacy_policy.dart';
+import 'package:mental_healthcare/app_settings_components/security_screen.dart';
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
 
 class PractSettings extends StatefulWidget {
@@ -10,23 +13,32 @@ class PractSettings extends StatefulWidget {
 }
 
 class _PractSettingsState extends State<PractSettings> {
-  bool _darkMode = false;
-  bool _notificationsEnabled = true;
-  bool _autoUpdates = true;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xfff8f9fb),
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.primary, AppColors.accent],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+        ),
         title: const Text(
           'Settings ⚙️',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         centerTitle: true,
-        backgroundColor: AppColors.primary,
         elevation: 4,
       ),
+
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -39,7 +51,7 @@ class _PractSettingsState extends State<PractSettings> {
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.all(16),
           children: [
-            // Account Section
+            // 🔹 ACCOUNT SECTION
             const Text(
               'Account',
               style: TextStyle(
@@ -49,30 +61,54 @@ class _PractSettingsState extends State<PractSettings> {
               ),
             ),
             const SizedBox(height: 10),
+
             _buildSettingTile(
               icon: Icons.person_outline,
               title: 'Edit Profile',
               subtitle: 'Update your personal information',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const EditProfileScreen(),
+                  ),
+                );
+              },
             ),
+
             _buildSettingTile(
               icon: Icons.lock_outline,
-              title: 'Change Password',
+              title: 'Security',
               subtitle: 'Update your account security',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SecurityScreen(),
+                  ),
+                );
+              },
             ),
+
             _buildSettingTile(
               icon: Icons.credit_card_outlined,
               title: 'Manage Subscription',
               subtitle: 'Upgrade or cancel your plan',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SubscriptionScreen(),
+                  ),
+                );
+              },
             ),
 
             const SizedBox(height: 24),
 
-            // Notification Section
+            // 🔹 PRIVACY SECTION
             const Text(
-              'Notifications',
+              'Privacy',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -80,59 +116,24 @@ class _PractSettingsState extends State<PractSettings> {
               ),
             ),
             const SizedBox(height: 10),
-            _buildSwitchTile(
-              icon: Icons.notifications_active_outlined,
-              title: 'Push Notifications',
-              value: _notificationsEnabled,
-              onChanged: (val) {
-                setState(() => _notificationsEnabled = val);
-              },
-            ),
-            _buildSwitchTile(
-              icon: Icons.system_update_alt_rounded,
-              title: 'Auto Updates',
-              value: _autoUpdates,
-              onChanged: (val) {
-                setState(() => _autoUpdates = val);
-              },
-            ),
 
-            const SizedBox(height: 24),
-
-            // App Preferences Section
-            const Text(
-              'App Preferences',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xff222B45),
-              ),
-            ),
-            const SizedBox(height: 10),
-            _buildSwitchTile(
-              icon: Icons.dark_mode_outlined,
-              title: 'Dark Mode',
-              value: _darkMode,
-              onChanged: (val) {
-                setState(() => _darkMode = val);
-              },
-            ),
-            _buildSettingTile(
-              icon: Icons.language_rounded,
-              title: 'Language',
-              subtitle: 'English (US)',
-              onTap: () {},
-            ),
             _buildSettingTile(
               icon: Icons.privacy_tip_outlined,
               title: 'Privacy Policy',
               subtitle: 'View app privacy details',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PrivacyPolicyScreen(),
+                  ),
+                );
+              },
             ),
 
             const SizedBox(height: 24),
 
-            // Help Section
+            // 🔹 HELP SECTION
             const Text(
               'Help & Support',
               style: TextStyle(
@@ -142,12 +143,14 @@ class _PractSettingsState extends State<PractSettings> {
               ),
             ),
             const SizedBox(height: 10),
+
             _buildSettingTile(
               icon: Icons.help_outline_rounded,
               title: 'FAQ',
               subtitle: 'Common questions and answers',
               onTap: () {},
             ),
+
             _buildSettingTile(
               icon: Icons.support_agent_rounded,
               title: 'Contact Support',
@@ -157,7 +160,7 @@ class _PractSettingsState extends State<PractSettings> {
 
             const SizedBox(height: 30),
 
-            // Logout Button
+            // 🔹 LOGOUT BUTTON
             Center(
               child: ElevatedButton.icon(
                 onPressed: () {},
@@ -181,14 +184,17 @@ class _PractSettingsState extends State<PractSettings> {
                 ),
               ),
             ),
+
             const SizedBox(height: 30),
           ],
         ),
       ),
-      bottomNavigationBar: prac_bottomNavbbar(currentScreen: 'Settings', clientData: {},),
     );
   }
 
+  // ----------------------
+  // 🔧 Setting Tile Widget
+  // ----------------------
   Widget _buildSettingTile({
     required IconData icon,
     required String title,
@@ -223,42 +229,6 @@ class _PractSettingsState extends State<PractSettings> {
             : null,
         trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
         onTap: onTap,
-      ),
-    );
-  }
-
-  Widget _buildSwitchTile({
-    required IconData icon,
-    required String title,
-    required bool value,
-    required Function(bool) onChanged,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.12),
-            blurRadius: 6,
-            spreadRadius: 1,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: SwitchListTile(
-        activeThumbColor: AppColors.primary,
-        secondary: CircleAvatar(
-          backgroundColor: AppColors.primary.withOpacity(0.1),
-          child: Icon(icon, color: AppColors.primary),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-        ),
-        value: value,
-        onChanged: onChanged,
       ),
     );
   }

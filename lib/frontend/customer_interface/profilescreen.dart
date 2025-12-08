@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +26,24 @@ class ProfileProvider extends ChangeNotifier {
   bool get paymentLoading => _paymentLoading;
   String get paymentStatus => _paymentStatus;
   bool get isPremium => _isPremium;
+  // bool isPremium = false;
+  bool isLoading = true;
+
+  Future<void> loadProfile() async {
+    isLoading = true;
+    notifyListeners();
+
+    // Fetch from Firestore
+    final userDoc = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .get();
+
+    _isPremium = userDoc['isPremium'] ?? false;
+
+    isLoading = false;
+    notifyListeners();
+  }
 
   Future<void> fetchProfile(BuildContext context) async {
     if (_profile != null) return; // prevent unnecessary reload
@@ -47,7 +67,7 @@ class ProfileProvider extends ChangeNotifier {
           .collection('Users')
           .doc(user.uid)
           .get();
-      final status = doc.data()?['payment Status'] ?? 'Pending';
+      final status = doc.data()?['Payment Status'] ?? 'Pending';
       _paymentStatus = status;
       _isPremium = status == 'Completed';
       notifyListeners();
@@ -75,18 +95,20 @@ class ProfileProvider extends ChangeNotifier {
     final stripe = StripServices();
 
     try {
-      await stripe.makepayments(20, "USD");
+      await stripe.makepayments(9.99, "USD");
       await FirebaseFirestore.instance
           .collection('Users')
           .doc(user!.uid)
-          .update({'payment Status': 'Completed'});
+          .update({'Payment Status': 'Completed'});
       _paymentStatus = 'Completed';
       _isPremium = true;
     } catch (e) {
+      print("$e");
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('❌ Payment failed. Please try again.'),
+        SnackBar(
+          content: Text("❌ Payment failed. Please try again."),
           backgroundColor: Colors.redAccent,
+          duration: Duration(seconds: 4),
         ),
       );
     } finally {
@@ -105,62 +127,82 @@ class Profilescreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<ProfileProvider>(context, listen: false);
+    final provider = Provider.of<ProfileProvider>(context, listen: true);
     // fetch profile only once when screen builds first time
     WidgetsBinding.instance.addPostFrameCallback((_) {
       provider.fetchProfile(context);
     });
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          SafeArea(
-            bottom: false,
-            child: Consumer<ProfileProvider>(
-              builder: (context, provider, _) {
-                if (provider.loading && provider.profile == null) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: AppColors.accent),
-                  );
-                }
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: Stack(
+          children: [
+            SafeArea(
+              bottom: false,
+              child: Consumer<ProfileProvider>(
+                builder: (context, provider, _) {
+                  if (provider.loading && provider.profile == null) {
+                    return const Center(
+                      child: CircularProgressIndicator(color: AppColors.accent),
+                    );
+                  }
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const ProfileAppBar(),
-                    Expanded(
-                      child: RefreshIndicator(
-                        onRefresh: () => provider.refreshProfile(context),
-                        child: SingleChildScrollView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const ProfileCard(),
-                              const SizedBox(height: 24),
-                              const SectionTitle(title: 'Preferences'),
-                              const PreferencesCard(),
-                              const SizedBox(height: 24),
-                              const SectionTitle(title: 'Subscriptions'),
-                              const SubscriptionCard(),
-                              const SizedBox(height: 40),
-                            ],
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const ProfileAppBar(),
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: () => provider.refreshProfile(context),
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const ProfileCard(),
+                                const SizedBox(height: 24),
+                                const SectionTitle(title: 'Preferences'),
+                                const PreferencesCard(),
+                                const SectionTitle(title: 'User ID'),
+                                Text(
+                                  FirebaseAuth.instance.currentUser!.uid
+                                      .toString(),
+                                  style: const TextStyle(
+                                    color: AppColors.textColorSecondary,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                const SectionTitle(title: 'Subscriptions'),
+                                const SubscriptionCard(),
+                                const SizedBox(height: 40),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                );
-              },
+                    ],
+                  );
+                },
+              ),
             ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: BottomNavBar(currentScreen: title),
-          ),
-        ],
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: BottomNavBar(currentScreen: title),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -290,7 +332,12 @@ class ProfileCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        gradient: LinearGradient(
+          colors: [AppColors.primary, AppColors.accent],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
@@ -518,31 +565,39 @@ class SubscriptionCard extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 50),
+        const SizedBox(height: 20),
         GestureDetector(
           onTap: provider.isPremium
               ? () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const FindingTherapist()),
+                  MaterialPageRoute(builder: (_) => FindingTherapist()),
                 )
               : () => provider.makePayment(context),
           child: Container(
             width: double.infinity,
             height: 60,
             decoration: BoxDecoration(
-              color: AppColors.accent,
+              gradient: LinearGradient(
+                colors: [AppColors.primary, AppColors.accent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Center(
-              child: Text(
-                provider.isPremium ? 'Find Practitioner' : 'Upgrade to Premium',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 19,
-                ),
-              ),
-            ),
+            child: provider.paymentLoading
+                ? Center(child: CircularProgressIndicator())
+                : Center(
+                    child: Text(
+                      provider.isPremium
+                          ? 'Find Practitioner'
+                          : 'Upgrade to Premium 9.99 USD',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 19,
+                      ),
+                    ),
+                  ),
           ),
         ),
       ],
