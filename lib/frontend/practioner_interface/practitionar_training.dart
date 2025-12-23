@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:mental_healthcare/frontend/practioner_interface/prac_homescreen.dart';
 import 'package:mental_healthcare/frontend/practioner_interface/widgets/pract_custom_wdgets.dart';
+import 'package:mental_healthcare/frontend/training_components/module_viewer.dart';
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
 
 class PractitionarTraining extends StatefulWidget {
@@ -13,33 +15,6 @@ class PractitionarTraining extends StatefulWidget {
 class _PractitionarTrainingState extends State<PractitionarTraining>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-
-  final List<Map<String, dynamic>> _trainingModules = [
-    {
-      'title': 'Mindfulness Techniques 🧘‍♀️',
-      'desc': 'Learn effective techniques to help clients reduce stress.',
-      'progress': 0.8,
-      'color': Colors.blueAccent,
-    },
-    {
-      'title': 'Cognitive Behavioral Therapy 💭',
-      'desc': 'Understand CBT fundamentals and practical applications.',
-      'progress': 0.45,
-      'color': Colors.purpleAccent,
-    },
-    {
-      'title': 'Emotional Intelligence 🧠',
-      'desc': 'Develop empathy and better emotional communication skills.',
-      'progress': 0.6,
-      'color': Colors.teal,
-    },
-    {
-      'title': 'Depression Management 🌧️',
-      'desc': 'Explore strategies to assist clients facing depression.',
-      'progress': 0.2,
-      'color': Colors.orangeAccent,
-    },
-  ];
 
   @override
   void initState() {
@@ -57,6 +32,17 @@ class _PractitionarTrainingState extends State<PractitionarTraining>
   }
 
   Widget _buildTrainingCard(Map<String, dynamic> module, int index) {
+    // Generate a color based on index for variety
+    final List<Color> colors = [
+      Colors.blueAccent,
+      Colors.purpleAccent,
+      Colors.teal,
+      Colors.orangeAccent,
+      Colors.pinkAccent,
+      Colors.indigoAccent
+    ];
+    final color = colors[index % colors.length];
+
     final animation =
         Tween<Offset>(
           begin: Offset(0, 0.3 * (index + 1)),
@@ -78,7 +64,7 @@ class _PractitionarTrainingState extends State<PractitionarTraining>
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: module['color'].withOpacity(0.25),
+              color: color.withOpacity(0.25),
               blurRadius: 10,
               spreadRadius: 2,
               offset: const Offset(0, 4),
@@ -89,21 +75,22 @@ class _PractitionarTrainingState extends State<PractitionarTraining>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              module['title'],
+              module['title'] ?? "Untitled Module",
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              module['desc'],
+              module['description'] ?? "No description available.",
               style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
             ),
             const SizedBox(height: 16),
+            // Progress placeholder (random for now as we don't track it yet)
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: LinearProgressIndicator(
-                value: module['progress'],
-                color: module['color'],
-                backgroundColor: module['color'].withOpacity(0.1),
+                value: 0.0, // Initial state
+                color: color,
+                backgroundColor: color.withOpacity(0.1),
                 minHeight: 8,
               ),
             ),
@@ -112,16 +99,15 @@ class _PractitionarTrainingState extends State<PractitionarTraining>
               alignment: Alignment.bottomRight,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("Opening ${module['title']}..."),
-                      behavior: SnackBarBehavior.floating,
-                      duration: const Duration(seconds: 1),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ModuleViewerScreen(moduleData: module),
                     ),
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: module['color'],
+                  backgroundColor: color,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -152,7 +138,7 @@ class _PractitionarTrainingState extends State<PractitionarTraining>
       child: Scaffold(
         backgroundColor: const Color(0xfff8f9fb),
         appBar: AppBar(
-          iconTheme: IconThemeData(color: Colors.white),
+          iconTheme: const IconThemeData(color: Colors.white),
           leading: IconButton(
             onPressed: () {
               Navigator.push(
@@ -160,7 +146,7 @@ class _PractitionarTrainingState extends State<PractitionarTraining>
                 MaterialPageRoute(builder: (_) => PracHomescreen()),
               );
             },
-            icon: Icon(Icons.arrow_back_ios),
+            icon: const Icon(Icons.arrow_back_ios),
           ),
           elevation: 4,
           title: const Text(
@@ -192,27 +178,45 @@ class _PractitionarTrainingState extends State<PractitionarTraining>
           ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: ListView(
-              physics: const BouncingScrollPhysics(),
-              children: [
-                const Text(
-                  'Welcome Back 👋',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xff222B45),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Continue your professional growth with engaging modules.',
-                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                ),
-                const SizedBox(height: 20),
-                ..._trainingModules.asMap().entries.map(
-                  (entry) => _buildTrainingCard(entry.value, entry.key),
-                ),
-              ],
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('TrainingModules').orderBy('timestamp', descending: true).snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return const Center(child: Text("Something went wrong"));
+                }
+
+                final docs = snapshot.data?.docs ?? [];
+
+                return ListView(
+                  physics: const BouncingScrollPhysics(),
+                  children: [
+                    const Text(
+                      'Welcome Back 👋',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xff222B45),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Continue your professional growth with engaging modules.',
+                      style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                    ),
+                    const SizedBox(height: 20),
+                    if (docs.isEmpty)
+                      const Center(child: Text("No training modules available."))
+                    else
+                      ...docs.asMap().entries.map(
+                        (entry) => _buildTrainingCard(entry.value.data() as Map<String, dynamic>, entry.key),
+                      ),
+                  ],
+                );
+              },
             ),
           ),
         ),

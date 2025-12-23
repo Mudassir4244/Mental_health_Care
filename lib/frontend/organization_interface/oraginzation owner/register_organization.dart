@@ -316,6 +316,7 @@ import 'package:get/get.dart';
 import 'package:mental_healthcare/backend/oraganization.dart';
 import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/organization_homescreen.dart';
 import 'package:mental_healthcare/payment_process/stripe_services.dart';
+import 'package:mental_healthcare/frontend/widgets/error_handler.dart';
 
 class CreateOrganizationScreen extends StatefulWidget {
   const CreateOrganizationScreen({super.key});
@@ -518,37 +519,35 @@ class _CreateOrganizationScreenState extends State<CreateOrganizationScreen> {
     bool visible = false,
     TextInputType keyboardType = TextInputType.text,
   }) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      obscureText: isPassword ? !visible : false,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Colors.white70),
-        prefixIcon: Icon(icon, color: Colors.white),
-        suffixIcon: isPassword
-            ? IconButton(
-                icon: Icon(
-                  visible ? Icons.visibility : Icons.visibility_off,
-                  color: Colors.white70,
-                ),
-                onPressed: togglePassword,
-              )
-            : null,
-        filled: true,
-        fillColor: Colors.white.withOpacity(0.15),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.6)),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 18,
-          vertical: 16,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.white.withOpacity(0.3)),
+      ),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        obscureText: isPassword ? !visible : false,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(color: Colors.white70),
+          prefixIcon: Icon(icon, color: Colors.white),
+          suffixIcon: isPassword
+              ? IconButton(
+                  icon: Icon(
+                    visible ? Icons.visibility : Icons.visibility_off,
+                    color: Colors.white70,
+                  ),
+                  onPressed: togglePassword,
+                )
+              : null,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 18,
+            vertical: 16,
+          ),
         ),
       ),
     );
@@ -558,7 +557,7 @@ class _CreateOrganizationScreenState extends State<CreateOrganizationScreen> {
     if (nameController.text.isEmpty ||
         emailController.text.isEmpty ||
         passwordController.text.isEmpty) {
-      Get.snackbar("Error", "Please fill all fields");
+      ErrorHandler.showErrorSnackBar(context, "Please fill all fields");
       return;
     }
 
@@ -566,14 +565,8 @@ class _CreateOrganizationScreenState extends State<CreateOrganizationScreen> {
     User? createdUser;
 
     try {
-      final isAvailable = await auth.isEmailAvailable(emailController.text);
-
-      if (!isAvailable) {
-        if (mounted) {
-          Get.snackbar("Error", "Email already registered");
-        }
-        return;
-      }
+      // Removed isEmailAvailable check to avoid permission errors blocking registration.
+      // Uniqueness is enforced by FirebaseAuth's createUserWithEmailAndPassword.
 
       createdUser = await auth.create_organization(
         orgzanization_name: nameController.text,
@@ -593,21 +586,18 @@ class _CreateOrganizationScreenState extends State<CreateOrganizationScreen> {
           context,
           MaterialPageRoute(builder: (_) => organ_owner_homescreen()),
         );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Organization created successfully!"),
-            backgroundColor: Colors.green,
-          ),
+        ErrorHandler.showSuccessSnackBar(
+          context,
+          "Organization created successfully!",
         );
       }
     } catch (e) {
       if (mounted) {
         print(e);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Check your Internet and try again"),
-            backgroundColor: Colors.red,
-          ),
+        ErrorHandler.showErrorDialog(
+          context,
+          "Error",
+          "Check your Internet and try again",
         );
       }
     } finally {

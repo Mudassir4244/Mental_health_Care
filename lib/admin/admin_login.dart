@@ -46,178 +46,155 @@ class _DesktopLoginUIState extends State<DesktopLoginUI> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 450,
-        padding: EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(color: Colors.black12, blurRadius: 12, spreadRadius: 2),
-          ],
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF6A5AE0), Color(0xFF00C2FF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.admin_panel_settings, size: 70, color: Colors.blue),
-              SizedBox(height: 20),
-
-              Text(
-                "Admin Login",
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 30),
-
-              // EMAIL FIELD
-              TextFormField(
-                controller: email,
-                decoration: InputDecoration(
-                  labelText: "Email",
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Email can't be empty";
-                  }
-                  if (!value.contains("@")) {
-                    return "Invalid email format";
-                  }
-                  return null;
-                },
-              ),
-
-              SizedBox(height: 20),
-
-              // PASSWORD FIELD + VISIBILITY TOGGLE
-              TextFormField(
-                controller: password,
-                obscureText: _obscurePassword,
-                decoration: InputDecoration(
-                  labelText: "Password",
-                  border: OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Password can't be empty";
-                  }
-                  if (value.length < 6) {
-                    return "Password must be at least 6 characters";
-                  }
-                  return null;
-                },
-              ),
-
-              SizedBox(height: 30),
-
-              // LOGIN BUTTON
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      final adminLogin = AdminLogin();
-                      adminLogin.performLogin(
-                        email.text.trim(),
-                        password.text.trim(),
-                        context,
-                      );
-                    }
-                  },
-                  child: Text("Login", style: TextStyle(fontSize: 18)),
-                ),
+      ),
+      child: Center(
+        child: Container(
+          width: 450,
+          padding: const EdgeInsets.all(40),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-// ------------------------------------------------------------
-// MOBILE LOGIN UI
-// ------------------------------------------------------------
-class _MobileLoginUI extends StatelessWidget {
-  final TextEditingController email = TextEditingController();
-  final TextEditingController password = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(22),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.admin_panel_settings, size: 80, color: Colors.blue),
-          SizedBox(height: 25),
-
-          Text(
-            "Admin Login",
-            style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-          ),
-
-          SizedBox(height: 40),
-
-          // Email
-          TextField(
-            controller: email,
-            decoration: InputDecoration(
-              labelText: "Email",
-              border: OutlineInputBorder(),
-            ),
-          ),
-          SizedBox(height: 20),
-
-          // Password
-          TextField(
-            controller: password,
-            obscureText: true,
-            decoration: InputDecoration(
-              labelText: "Password",
-              border: OutlineInputBorder(),
-            ),
-          ),
-
-          SizedBox(height: 35),
-
-          // Login Button
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.admin_panel_settings,
+                  size: 80,
+                  color: Color(0xFF6A5AE0),
                 ),
-              ),
-              onPressed: () {},
-              child: Text("Login", style: TextStyle(fontSize: 18)),
+                const SizedBox(height: 20),
+
+                const Text(
+                  "Admin Portal",
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF333333),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  "Sign in to manage the application",
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+                const SizedBox(height: 40),
+
+                // EMAIL FIELD
+                TextFormField(
+                  controller: email,
+                  decoration: InputDecoration(
+                    labelText: "Email Address",
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[100],
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Email can't be empty";
+                    }
+                    if (!value.contains("@")) {
+                      return "Invalid email format";
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 20),
+
+                // PASSWORD FIELD + VISIBILITY TOGGLE
+                TextFormField(
+                  controller: password,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    labelText: "Password",
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[100],
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Password can't be empty";
+                    }
+                    if (value.length < 6) {
+                      return "Password must be at least 6 characters";
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 40),
+
+                // LOGIN BUTTON
+                SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6A5AE0),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      elevation: 5,
+                    ),
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        final adminLogin = AdminLogin();
+                        adminLogin.performLogin(
+                          email.text.trim(),
+                          password.text.trim(),
+                          context,
+                        );
+                      }
+                    },
+                    child: const Text(
+                      "Login",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

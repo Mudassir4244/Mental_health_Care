@@ -6,7 +6,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mental_healthcare/frontend/customer_interface/checkin.dart';
 import 'package:mental_healthcare/frontend/customer_interface/loginscreen.dart';
+import 'package:mental_healthcare/frontend/customer_interface/profilescreen.dart';
+import 'package:mental_healthcare/frontend/practioner_interface/prac_homescreen.dart';
+import 'package:mental_healthcare/frontend/practioner_interface/prac_profile.dart';
+import 'package:provider/provider.dart';
+import 'package:mental_healthcare/frontend/customer_interface/Activityscreeen.dart';
+import 'package:mental_healthcare/app_settings_components/edit_profile.dart';
+import 'package:mental_healthcare/app_settings_components/security_screen.dart';
+import 'package:mental_healthcare/frontend/customer_interface/quizscreen.dart';
+import 'package:mental_healthcare/admin/provider%20Classes/quiz_provider.dart';
+import 'package:mental_healthcare/admin/provider%20Classes/video_upload_provider.dart';
 
 class PracAuth {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -105,7 +116,24 @@ class PracAuth {
       String errorMessage;
 
       if (e.code == 'email-already-in-use') {
-        errorMessage = 'This email is already registered. Please use another.';
+        // Try to identify the role of the existing user
+        try {
+          final query = await firestore
+              .collection('Users')
+              .where('email', isEqualTo: email.trim())
+              .get();
+
+          if (query.docs.isNotEmpty) {
+            final role = query.docs.first.data()['role'];
+            errorMessage = 'Account already exists as $role. Please login.';
+          } else {
+            errorMessage =
+                'This email is already registered. Please use another.';
+          }
+        } catch (_) {
+          // If we can't query (permission denied), fall back to generic message
+          errorMessage = 'This email is already registered. Please login.';
+        }
       } else if (e.code == 'weak-password') {
         errorMessage = 'The password is too weak.';
       } else if (e.code == 'invalid-email') {
@@ -150,14 +178,15 @@ class PracAuth {
     try {
       final querySnapshot = await _firestore
           .collection('Users')
-          .where('Organization owner email', isEqualTo: email.trim())
+          .where('email', isEqualTo: email.trim())
           .limit(1)
           .get();
 
       return querySnapshot.docs.isEmpty;
     } catch (e) {
       debugPrint("Error checking email availability: $e");
-      return false;
+      // Return true (available) on error to fail open and let Auth handle it
+      return true;
     }
   }
 
@@ -201,6 +230,13 @@ class PracAuth {
           'username': updatedData['username'],
         if (updatedData['email'] != null) 'email': updatedData['email'],
         if (updatedData['role'] != null) 'role': updatedData['role'],
+        if (updatedData['Phone Number'] != null)
+          'Phone Number': updatedData['Phone Number'],
+        if (updatedData['Speciality'] != null)
+          'Speciality': updatedData['Speciality'],
+        if (updatedData['Experience'] != null)
+          'Experience': updatedData['Experience'],
+        if (updatedData['About'] != null) 'About': updatedData['About'],
       });
 
       // ✅ Securely update Firebase Auth email
@@ -248,8 +284,54 @@ class PracAuth {
   // 🧩 SIGN OUT
   Future<void> signOut(BuildContext context) async {
     try {
+      // Clear local profile data before signing out
+      // Try to clear both providers just in case
+      try {
+        Provider.of<ProfileProvider>(context, listen: false).clearProfile();
+      } catch (_) {}
+
+      try {
+        Provider.of<PracProfileProvider>(context, listen: false).clearProfile();
+      } catch (_) {}
+
+      try {
+        Provider.of<PremiumClientProvider>(context, listen: false).clear();
+      } catch (_) {}
+
+      try {
+        Provider.of<MoodProvider>(context, listen: false).clearMoods();
+      } catch (_) {}
+
+      try {
+        Provider.of<ActivityProvider>(context, listen: false).clearData();
+      } catch (_) {}
+
+      try {
+        Provider.of<EditProfileProvider>(context, listen: false).clearData();
+      } catch (_) {}
+
+      try {
+        Provider.of<SecurityProvider>(context, listen: false).clearData();
+      } catch (_) {}
+
+      try {
+        Provider.of<QuizListProvider>(context, listen: false).clearQuiz();
+      } catch (_) {}
+
+      try {
+        Provider.of<QuizProvider>(context, listen: false).clearQuiz();
+      } catch (_) {}
+
+      try {
+        Provider.of<VideoUploadProvider>(context, listen: false).deleteVideo();
+      } catch (_) {}
+
       await _auth.signOut();
-      Navigator.push(context, MaterialPageRoute(builder: (_) => LoginScreen()));
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => LoginScreen()),
+        (route) => false,
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Signed out successfully"),

@@ -1,14 +1,17 @@
 // ignore_for_file: dead_code
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mental_healthcare/admin/admin_homescreen.dart';
 import 'package:mental_healthcare/backend/customer.dart';
+import 'package:mental_healthcare/frontend/chats/screens/chat_list_screen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/Traningscreen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/checkin.dart';
 import 'package:mental_healthcare/frontend/customer_interface/Activityscreeen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/helpnow.dart';
 import 'package:mental_healthcare/frontend/customer_interface/homescreen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/insightscreen.dart';
+import 'package:mental_healthcare/frontend/customer_interface/loginscreen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/profilescreen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/quizscreen.dart';
 import 'package:mental_healthcare/resources/resources_screen.dart';
@@ -212,12 +215,48 @@ class BottomNavBar extends StatelessWidget {
             isSelected: currentScreen == 'Home',
             onTap: () => _handleNavigation(context, const HomeScreen()),
           ),
-          // _NavItem(
-          //   icon: Icons.message,
-          //   label: "Inbox",
-          //   isSelected: currentScreen == 'Inbox',
-          //   onTap: () => _handleNavigation(context, Inboxscreen()),
-          // ),
+          _NavItem(
+            icon: Icons.message,
+            label: "Inbox",
+            isSelected: currentScreen == 'Inbox',
+            onTap: () {
+              if (FirebaseAuth.instance.currentUser == null) {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text("Access Restricted"),
+                    content: const Text("You must login to access messages."),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text("Cancel"),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context); // Close dialog
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const LoginScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          "Login",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                _handleNavigation(context, InboxScreen());
+              }
+            },
+          ),
           _NavItem(
             icon: Icons.model_training,
             label: "Training",
@@ -291,133 +330,286 @@ class Mydrawer extends StatefulWidget {
 
 class _MydrawerState extends State<Mydrawer> {
   final Authentication auth = Authentication();
+
+  // Helper to get current user - called in build to ensure freshness
+  User? get user => FirebaseAuth.instance.currentUser;
+
+  void _handleGuestAccess(BuildContext context, VoidCallback onAuthenticated) {
+    if (user == null) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Access Restricted"),
+          content: const Text("You must login to access this feature."),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+              ),
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                );
+              },
+              child: const Text("Login", style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
+    } else {
+      onAuthenticated();
+    }
+  }
+
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    Color? iconColor,
+    Color? textColor,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
+      child: ListTile(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: (iconColor ?? AppColors.primary).withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: iconColor ?? AppColors.primary, size: 22),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            color: textColor ?? Colors.black87,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          size: 14,
+          color: Colors.grey.shade400,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Drawer(
-        child: Column(
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.primary, AppColors.accent],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+    return Drawer(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(20),
+          bottomRight: Radius.circular(20),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Custom Header
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.primary, AppColors.accent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Text(
-                  'Mind Asist',
-                  style: TextStyle(
-                    color: AppColors.cardColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: CircleAvatar(
+                    radius: 35,
+                    backgroundColor: Colors.white,
+                    backgroundImage: user?.photoURL != null
+                        ? NetworkImage(user!.photoURL!)
+                        : null,
+                    child: user?.photoURL == null
+                        ? Text(
+                            user?.email?.substring(0, 1).toUpperCase() ?? "G",
+                            style: TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          )
+                        : null,
                   ),
                 ),
-              ),
+                const SizedBox(height: 15),
+                Text(
+                  user?.displayName ?? (user == null ? "Guest User" : "User"),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  user?.email ?? "Sign in to access all features",
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
             ),
+          ),
 
-            // Drawer items
-            ListTile(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => Insightscreen()),
-                );
-              },
-              leading: const Icon(Icons.bookmark),
-              title: const Text('Insight Screen'),
-            ),
-            const Divider(),
-            ListTile(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => FullActivityScreen()),
-                );
-              },
-              leading: const Icon(Icons.local_activity),
-              title: const Text('Activity Screen'),
-            ),
-            const Divider(),
-            ListTile(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => QuizScreen()),
-                );
-              },
-              title: const Text('Quiz Screen'),
-              leading: const Icon(Icons.quiz),
-            ),
-            const Divider(),
-            ListTile(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => AdminHomescreen()),
-                );
-              },
-              title: const Text('Admin'),
-              leading: const Icon(Icons.admin_panel_settings),
-            ),
-            Divider(),
-            ListTile(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => PractSettings()),
-                );
-              },
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
-            ),
+          const SizedBox(height: 10),
 
-            // 👇 Pushes logout to bottom
-            const Spacer(),
+          // Drawer Items
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _buildDrawerItem(
+                  icon: Icons.bookmark_outline,
+                  title: 'Insights',
+                  onTap: () {
+                    _handleGuestAccess(context, () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => Insightscreen()),
+                      );
+                    });
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.local_activity_outlined,
+                  title: 'Activities',
+                  onTap: () {
+                    _handleGuestAccess(context, () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => FullActivityScreen()),
+                      );
+                    });
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.quiz_outlined,
+                  title: 'Quiz',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => QuizScreen()),
+                    );
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.admin_panel_settings_outlined,
+                  title: 'Admin Panel',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AdminHomescreen(),
+                      ),
+                    );
+                  },
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: Divider(height: 1),
+                ),
+                _buildDrawerItem(
+                  icon: Icons.settings_outlined,
+                  title: 'Settings',
+                  onTap: () {
+                    _handleGuestAccess(context, () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => PractSettings()),
+                      );
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
 
-            ListTile(
+          // Logout Button
+          Padding(
+            padding: const EdgeInsets.only(bottom: 20, top: 10),
+            child: _buildDrawerItem(
+              icon: Icons.logout_rounded,
+              title: 'Logout',
+              iconColor: Colors.redAccent,
+              textColor: Colors.redAccent,
               onTap: () {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
                       title: const Text(
                         'Logout',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       content: const Text(
-                        'Are you Sure you wana Logout?',
-                        style: TextStyle(fontSize: 17),
+                        'Are you sure you want to logout?',
+                        style: TextStyle(fontSize: 16),
                       ),
                       actions: [
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context); // close dialog
-                          },
-                          child: const Text('No'),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(color: Colors.grey),
+                          ),
                         ),
                         ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
                           onPressed: () {
                             auth.signout(context);
-                            // Navigator.pop(context);
                           },
-                          child: const Text('Yes'),
+                          child: const Text(
+                            'Logout',
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
                       ],
                     );
                   },
                 );
-
-                // your logout logic here
               },
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Logout', style: TextStyle(color: Colors.red)),
             ),
-            const SizedBox(height: 20),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

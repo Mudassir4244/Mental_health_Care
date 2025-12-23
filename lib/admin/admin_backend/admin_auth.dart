@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mental_healthcare/admin/admin_homescreen.dart';
+import 'package:mental_healthcare/frontend/widgets/error_handler.dart';
 
 class AdminLogin {
   Future<void> performLogin(
@@ -10,9 +11,7 @@ class AdminLogin {
     BuildContext context,
   ) async {
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Please fill all fields")));
+      ErrorHandler.showErrorSnackBar(context, "Please fill all fields");
       return;
     }
 
@@ -30,9 +29,7 @@ class AdminLogin {
           .get();
 
       if (!snapshot.exists) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("User data not found")));
+        ErrorHandler.showErrorSnackBar(context, "User data not found");
         return;
       }
 
@@ -44,14 +41,10 @@ class AdminLogin {
           MaterialPageRoute(builder: (_) => AdminHomescreen()),
         );
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Access denied. Not an admin")));
+        ErrorHandler.showErrorSnackBar(context, "Access denied. Not an admin");
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      ErrorHandler.showErrorDialog(context, "Login Error", e.toString());
     }
   }
 }

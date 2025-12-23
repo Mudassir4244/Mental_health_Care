@@ -4,7 +4,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mental_healthcare/frontend/customer_interface/checkin.dart';
+import 'package:mental_healthcare/frontend/customer_interface/loginscreen.dart';
+import 'package:mental_healthcare/frontend/customer_interface/profilescreen.dart';
+import 'package:mental_healthcare/frontend/practioner_interface/prac_homescreen.dart';
+import 'package:mental_healthcare/frontend/practioner_interface/prac_profile.dart';
 import 'package:mental_healthcare/payment_process/stripe_services.dart';
+import 'package:provider/provider.dart';
+import 'package:mental_healthcare/frontend/customer_interface/Activityscreeen.dart';
+import 'package:mental_healthcare/admin/provider%20Classes/quiz_provider.dart';
+import 'package:mental_healthcare/admin/provider%20Classes/video_upload_provider.dart';
+import 'package:mental_healthcare/app_settings_components/edit_profile.dart';
+import 'package:mental_healthcare/app_settings_components/security_screen.dart';
+import 'package:mental_healthcare/frontend/customer_interface/quizscreen.dart';
 
 class OrganAuth {
   final FirebaseAuth _firebaseauth = FirebaseAuth.instance;
@@ -41,6 +53,7 @@ class OrganAuth {
           "Organization Id": organization.uid.trim(),
           "Organization name": orgzanization_name.trim(),
           "Organization owner email": organ_admin_email.trim(),
+          "email": organ_admin_email.trim(),
           "role": "Organization Owner",
           "Payment Status": "Pending", // ✅ Always starts as Pending
           "Created at": FieldValue.serverTimestamp(),
@@ -53,7 +66,22 @@ class OrganAuth {
       String errorMessage;
 
       if (e.code == 'email-already-in-use') {
-        errorMessage = 'This email is already registered. Please use another.';
+        try {
+          final query = await firestore
+              .collection('Users')
+              .where('email', isEqualTo: organ_admin_email.trim())
+              .get();
+
+          if (query.docs.isNotEmpty) {
+            final role = query.docs.first.data()['role'];
+            errorMessage = 'Account already exists as $role. Please login.';
+          } else {
+            errorMessage =
+                'This email is already registered. Please use another.';
+          }
+        } catch (_) {
+          errorMessage = 'This email is already registered. Please login.';
+        }
       } else if (e.code == 'weak-password') {
         errorMessage = 'The password is too weak.';
       } else if (e.code == 'invalid-email') {
@@ -99,14 +127,15 @@ class OrganAuth {
     try {
       final querySnapshot = await _firestore
           .collection('Users')
-          .where('Organization owner email', isEqualTo: email.trim())
+          .where('email', isEqualTo: email.trim())
           .limit(1)
           .get();
 
       return querySnapshot.docs.isEmpty;
     } catch (e) {
       debugPrint("Error checking email availability: $e");
-      return false;
+      // Return true (available) on error to fail open and let Auth handle it
+      return true;
     }
   }
 
@@ -121,7 +150,8 @@ class OrganAuth {
 
       if (doc.exists) {
         final data = doc.data();
-        if (data != null && data['role'] == "Organization Owner") {
+        if (data != null &&
+            data['role']?.toString().toLowerCase() == "organization owner") {
           return data;
         }
       }
@@ -131,7 +161,7 @@ class OrganAuth {
 
       if (query.docs.isNotEmpty) {
         final data = query.docs.first.data();
-        if (data['role'] == "Organization Owner") {
+        if (data['role']?.toString().toLowerCase() == "organization owner") {
           return data;
         }
       }
@@ -145,6 +175,71 @@ class OrganAuth {
   }
 
   /// Sign out helper with snackbars on success/failure.
+  Future<void> signOut(BuildContext context) async {
+    try {
+      // Clear local profile data before signing out
+      try {
+        Provider.of<ProfileProvider>(context, listen: false).clearProfile();
+      } catch (_) {}
+
+      try {
+        Provider.of<PracProfileProvider>(context, listen: false).clearProfile();
+      } catch (_) {}
+
+      try {
+        Provider.of<PremiumClientProvider>(context, listen: false).clear();
+      } catch (_) {}
+
+      try {
+        Provider.of<MoodProvider>(context, listen: false).clearMoods();
+      } catch (_) {}
+
+      try {
+        Provider.of<ActivityProvider>(context, listen: false).clearData();
+      } catch (_) {}
+
+      try {
+        Provider.of<QuizProvider>(context, listen: false).clearQuiz();
+      } catch (_) {}
+
+      try {
+        Provider.of<VideoUploadProvider>(context, listen: false).deleteVideo();
+      } catch (_) {}
+
+      try {
+        Provider.of<EditProfileProvider>(context, listen: false).clearData();
+      } catch (_) {}
+
+      try {
+        Provider.of<SecurityProvider>(context, listen: false).clearData();
+      } catch (_) {}
+
+      try {
+        Provider.of<QuizListProvider>(context, listen: false).clearQuiz();
+      } catch (_) {}
+
+      await _firebaseauth.signOut();
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Signed out successfully"),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      debugPrint("Error signing out: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Error signing out"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   // placeholder if you need it later
   Future<Map<String, dynamic>?> fetch_organ_employee(
@@ -164,7 +259,8 @@ class OrganAuth {
         print('Fetched user data: $data');
 
         // ✅ Fix: compare correctly
-        if (data?['role'] == 'Oganization Employee') {
+        if (data?['role']?.toString().toLowerCase() ==
+            'organization employee') {
           return data;
         } else {
           print('Role mismatch: ${data?['role']}');

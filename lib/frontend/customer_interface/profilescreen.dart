@@ -7,7 +7,9 @@ import 'package:provider/provider.dart';
 import 'package:mental_healthcare/backend/customer.dart';
 import 'package:mental_healthcare/frontend/customer_interface/finding_therapist.dart';
 import 'package:mental_healthcare/frontend/customer_interface/homescreen.dart';
+import 'package:mental_healthcare/frontend/customer_interface/loginscreen.dart';
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
+import 'package:mental_healthcare/frontend/widgets/error_handler.dart';
 import 'package:mental_healthcare/frontend/widgets/widgets.dart';
 import 'package:mental_healthcare/payment_process/stripe_services.dart';
 
@@ -33,13 +35,33 @@ class ProfileProvider extends ChangeNotifier {
     isLoading = true;
     notifyListeners();
 
-    // Fetch from Firestore
-    final userDoc = await FirebaseFirestore.instance
-        .collection("users")
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .get();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      _isPremium = false;
+      isLoading = false;
+      notifyListeners();
+      return;
+    }
 
-    _isPremium = userDoc['isPremium'] ?? false;
+    try {
+      // Fetch from Firestore
+      final userDoc = await FirebaseFirestore.instance
+          .collection("Users")
+          .doc(user.uid)
+          .get();
+
+      if (userDoc.exists) {
+        // Safely access data
+        final data = userDoc.data();
+        _paymentStatus = data?['Payment Status'] ?? 'Pending';
+        _isPremium = _paymentStatus == 'Completed';
+      } else {
+        _isPremium = false;
+      }
+    } catch (e) {
+      print("Error loading profile: $e");
+      _isPremium = false;
+    }
 
     isLoading = false;
     notifyListeners();
@@ -79,6 +101,15 @@ class ProfileProvider extends ChangeNotifier {
     await fetchProfile(context);
   }
 
+  void clearProfile() {
+    _profile = null;
+    _loading = false;
+    _paymentLoading = false;
+    _paymentStatus = 'Pending';
+    _isPremium = false;
+    notifyListeners();
+  }
+
   Future<void> updateProfile(
     BuildContext context,
     Map<String, dynamic> newData,
@@ -104,12 +135,9 @@ class ProfileProvider extends ChangeNotifier {
       _isPremium = true;
     } catch (e) {
       print("$e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("❌ Payment failed. Please try again."),
-          backgroundColor: Colors.redAccent,
-          duration: Duration(seconds: 4),
-        ),
+      ErrorHandler.showErrorSnackBar(
+        context,
+        "❌ Payment failed. Please try again.",
       );
     } finally {
       _paymentLoading = false;
@@ -127,6 +155,80 @@ class Profilescreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (FirebaseAuth.instance.currentUser == null) {
+      return WillPopScope(
+        onWillPop: () async {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
+          return false;
+        },
+        child: Scaffold(
+          backgroundColor: AppColors.background,
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.lock_outline, size: 80, color: AppColors.primary),
+                  const SizedBox(height: 24),
+                  const Text(
+                    "Profile Locked",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textColorPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    "You must login to view and edit your profile.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.textColorSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LoginScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        "Login Now",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          bottomNavigationBar: BottomNavBar(currentScreen: title),
+        ),
+      );
+    }
+
     final provider = Provider.of<ProfileProvider>(context, listen: true);
     // fetch profile only once when screen builds first time
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -245,7 +347,6 @@ class ProfileCard extends StatelessWidget {
     final provider = Provider.of<ProfileProvider>(context, listen: false);
     final nameController = TextEditingController(text: data['username']);
     final emailController = TextEditingController(text: data['email']);
-    final roleController = TextEditingController(text: data['role'] ?? '');
 
     showDialog(
       context: context,
@@ -277,14 +378,6 @@ class ProfileCard extends StatelessWidget {
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
                 ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: roleController,
-                  decoration: const InputDecoration(
-                    labelText: "Role",
-                    prefixIcon: Icon(Icons.badge_outlined),
-                  ),
-                ),
               ],
             ),
           ),
@@ -302,14 +395,12 @@ class ProfileCard extends StatelessWidget {
                 final updatedData = {
                   'username': nameController.text.trim(),
                   'email': emailController.text.trim(),
-                  'role': roleController.text.trim(),
                 };
                 await provider.updateProfile(context, updatedData);
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("✅ Profile updated successfully"),
-                  ),
+                ErrorHandler.showSuccessSnackBar(
+                  context,
+                  "✅ Profile updated successfully",
                 );
               },
               child: const Text("Save"),

@@ -78,6 +78,61 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class QuizService {
+  final CollectionReference _quizPapersCollection = FirebaseFirestore.instance
+      .collection('QuizPapers');
+
+  /// --------------------------------------------------------
+  /// UPLOAD FULL QUIZ PAPER
+  /// --------------------------------------------------------
+  Future<void> uploadQuizPaper({
+    required String title,
+    required String description,
+    required List<Map<String, dynamic>> questions,
+  }) async {
+    try {
+      await _quizPapersCollection.add({
+        "title": title,
+        "description": description,
+        "questions": questions,
+        "questionCount": questions.length,
+        "timestamp": FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw Exception("Failed to upload quiz paper: $e");
+    }
+  }
+
+  /// --------------------------------------------------------
+  /// FETCH ALL QUIZ PAPERS
+  /// --------------------------------------------------------
+  Future<List<Map<String, dynamic>>> fetchQuizPapers() async {
+    try {
+      QuerySnapshot snapshot = await _quizPapersCollection
+          .orderBy("timestamp", descending: true)
+          .get();
+
+      return snapshot.docs.map((doc) {
+        var data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        return data;
+      }).toList();
+    } catch (e) {
+      throw Exception("Failed to fetch quiz papers: $e");
+    }
+  }
+
+  /// --------------------------------------------------------
+  /// DELETE QUIZ PAPER
+  /// --------------------------------------------------------
+  Future<void> deleteQuizPaper(String quizId) async {
+    try {
+      await _quizPapersCollection.doc(quizId).delete();
+    } catch (e) {
+      throw Exception("Failed to delete quiz paper: $e");
+    }
+  }
+
+  // OLD METHODS (Keeping for reference if needed, but primary focus is QuizPapers)
   final CollectionReference _quizCollection = FirebaseFirestore.instance
       .collection('Quizes');
 

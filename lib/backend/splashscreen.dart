@@ -36,28 +36,30 @@ class _SplashScreenState extends State<SplashScreen> {
 
       if (doc.exists) {
         final role = doc['role'];
+        final String normalizedRole = role?.toString().toLowerCase() ?? '';
         final payementStatus = doc['Payment Status'];
-        if (role == 'customer') {
+
+        if (normalizedRole == 'customer') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const HomeScreen()),
           );
-        } else if (role == 'Organization Owner' && payementStatus == 'Completed') {
+        } else if (normalizedRole == 'organization owner' && payementStatus == 'Completed') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const organ_owner_homescreen()),
           );
-        } else if (role == 'Organization Employee') {
+        } else if (normalizedRole == 'organization employee') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const HomeScreen()),
           );
-        } else if (role == 'Practitioner' && payementStatus == 'Completed') {
+        } else if (normalizedRole == 'practitioner' && payementStatus == 'Completed') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const PracHomescreen()),
           );
-        } else if (role == 'Admin') {
+        } else if (normalizedRole == 'admin') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const AdminHomescreen()),

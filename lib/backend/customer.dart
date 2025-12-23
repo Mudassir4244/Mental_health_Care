@@ -3,14 +3,24 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:mental_healthcare/frontend/customer_interface/homescreen.dart';
+import 'package:mental_healthcare/frontend/customer_interface/checkin.dart';
 import 'package:mental_healthcare/frontend/customer_interface/loginscreen.dart';
+import 'package:mental_healthcare/frontend/customer_interface/profilescreen.dart';
+import 'package:mental_healthcare/frontend/practioner_interface/prac_homescreen.dart';
+import 'package:mental_healthcare/frontend/practioner_interface/prac_profile.dart';
+import 'package:mental_healthcare/frontend/widgets/error_handler.dart';
+import 'package:provider/provider.dart';
+import 'package:mental_healthcare/frontend/customer_interface/Activityscreeen.dart';
+import 'package:mental_healthcare/app_settings_components/edit_profile.dart';
+import 'package:mental_healthcare/app_settings_components/security_screen.dart';
+import 'package:mental_healthcare/frontend/customer_interface/quizscreen.dart';
+import 'package:mental_healthcare/admin/provider%20Classes/quiz_provider.dart';
+import 'package:mental_healthcare/admin/provider%20Classes/video_upload_provider.dart';
 
 class Authentication {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
 
   // 🧩 SIGN UP (Register new user + Assign role)
   Future<User?> signUp({
@@ -44,12 +54,36 @@ class Authentication {
           'createdAt': FieldValue.serverTimestamp(),
         });
 
-        Get.snackbar("Sign Up!", "Account created successfully as Customer");
+        ErrorHandler.showSuccessSnackBar(
+          context,
+          "Account created successfully as Customer",
+        );
       }
 
       return user;
     } on FirebaseAuthException catch (e) {
-      _showError(context, e.message ?? "Signup failed");
+      String errorMessage = e.message ?? "Signup failed";
+
+      if (e.code == 'email-already-in-use') {
+        try {
+          final query = await _firestore
+              .collection('Users')
+              .where('email', isEqualTo: email.trim())
+              .get();
+
+          if (query.docs.isNotEmpty) {
+            final role = query.docs.first.data()['role'];
+            errorMessage = 'Account already exists as $role. Please login.';
+          } else {
+            errorMessage =
+                'This email is already registered. Please use another.';
+          }
+        } catch (_) {
+          errorMessage = 'This email is already registered. Please login.';
+        }
+      }
+
+      _showError(context, errorMessage);
       return null;
     } catch (e) {
       _showError(context, e.toString());
@@ -69,7 +103,7 @@ class Authentication {
         password: password.trim(),
       );
 
-      Get.snackbar("Welcome Back!", "Login Successful");
+      ErrorHandler.showSuccessSnackBar(context, "Login Successful");
       return userCredential.user;
     } on FirebaseAuthException catch (e) {
       _showError(context, e.message ?? "Sign-in failed");
@@ -83,14 +117,54 @@ class Authentication {
   // 🧩 SIGN OUT
   Future<void> signout(BuildContext context) async {
     try {
+      // Clear local profile data before signing out
+      try {
+        Provider.of<ProfileProvider>(context, listen: false).clearProfile();
+      } catch (_) {}
+
+      try {
+        Provider.of<PracProfileProvider>(context, listen: false).clearProfile();
+      } catch (_) {}
+
+      try {
+        Provider.of<PremiumClientProvider>(context, listen: false).clear();
+      } catch (_) {}
+
+      try {
+        Provider.of<MoodProvider>(context, listen: false).clearMoods();
+      } catch (_) {}
+
+      try {
+        Provider.of<ActivityProvider>(context, listen: false).clearData();
+      } catch (_) {}
+
+      try {
+        Provider.of<EditProfileProvider>(context, listen: false).clearData();
+      } catch (_) {}
+
+      try {
+        Provider.of<SecurityProvider>(context, listen: false).clearData();
+      } catch (_) {}
+
+      try {
+        Provider.of<QuizListProvider>(context, listen: false).clearQuiz();
+      } catch (_) {}
+
+      try {
+        Provider.of<QuizProvider>(context, listen: false).clearQuiz();
+      } catch (_) {}
+
+      try {
+        Provider.of<VideoUploadProvider>(context, listen: false).deleteVideo();
+      } catch (_) {}
+
       await _auth.signOut();
-      Navigator.push(context, MaterialPageRoute(builder: (_) => LoginScreen()));
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Signed out successfully"),
-          backgroundColor: Colors.green,
-        ),
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => LoginScreen()),
+        (route) => false,
       );
+      ErrorHandler.showSuccessSnackBar(context, "Signed out successfully");
     } catch (e) {
       _showError(context, "Error signing out");
     }
@@ -146,12 +220,7 @@ class Authentication {
         await user.verifyBeforeUpdateEmail(updatedData['email']);
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Profile updated successfully"),
-          backgroundColor: Colors.green,
-        ),
-      );
+      ErrorHandler.showSuccessSnackBar(context, "Profile updated successfully");
     } catch (e) {
       debugPrint("Error updating profile: $e");
       _showError(context, "Failed to update profile: $e");
@@ -163,8 +232,6 @@ class Authentication {
 
   // 🧩 Error handling helper
   void _showError(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
+    ErrorHandler.showErrorDialog(context, "Error", message);
   }
 }

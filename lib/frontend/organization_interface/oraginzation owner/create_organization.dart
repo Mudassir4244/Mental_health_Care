@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/organization_onboarding_screen.dart';
 import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/register_organization.dart';
 
 class OrganizationOptionScreen extends StatelessWidget {
@@ -96,7 +96,7 @@ class OrganizationOptionScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const CreateOrganizationScreen(),
+                          builder: (_) => const OrganizationOnboardingScreen(),
                         ),
                       );
                     },

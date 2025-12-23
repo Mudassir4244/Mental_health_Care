@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mental_healthcare/admin/admin_login.dart';
+import 'package:mental_healthcare/frontend/customer_interface/loginscreen.dart';
 import 'package:mental_healthcare/backend/customer.dart';
 import 'package:mental_healthcare/backend/guest.dart';
 import 'package:mental_healthcare/frontend/customer_interface/homescreen.dart';
@@ -135,7 +136,7 @@ class ChoiceScreen extends StatelessWidget {
                       ],
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => AdminLoginScreen()),
+                        MaterialPageRoute(builder: (_) => const LoginScreen()),
                       ),
                     ),
                   ],

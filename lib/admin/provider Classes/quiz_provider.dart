@@ -3,12 +3,28 @@ import 'package:flutter/material.dart';
 class QuizProvider extends ChangeNotifier {
   final List<Map<String, dynamic>> _questions = [];
 
-  // Temporary fields
+  // Quiz Paper Details
+  String quizTitle = "";
+  String quizDescription = "";
+
+  // Temporary Question Fields
   String question = "";
   List<String> options = ["", "", "", ""];
   int correctIndex = -1;
 
   List<Map<String, dynamic>> get questions => _questions;
+
+  /// Update Quiz Title
+  void updateQuizTitle(String value) {
+    quizTitle = value;
+    notifyListeners();
+  }
+
+  /// Update Quiz Description
+  void updateQuizDescription(String value) {
+    quizDescription = value;
+    notifyListeners();
+  }
 
   /// Update question text
   void updateQuestion(String value) {
@@ -38,7 +54,7 @@ class QuizProvider extends ChangeNotifier {
 
     _questions.add({
       "question": question,
-      "options": List.from(options),
+      "options": List<String>.from(options),
       "correct": correctIndex,
     });
 

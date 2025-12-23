@@ -12,10 +12,14 @@ class SecurityProvider extends ChangeNotifier {
   final confirmPasswordController = TextEditingController();
 
   bool isLoading = false;
-  final User? user = FirebaseAuth.instance.currentUser;
+
+  User? get user => FirebaseAuth.instance.currentUser;
 
   /// Change Password
   Future<void> changePassword(BuildContext context) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
     if (newPasswordController.text.length < 6) {
       _showSnack(
         context,
@@ -50,12 +54,21 @@ class SecurityProvider extends ChangeNotifier {
 
   /// Send Email Verification
   Future<void> sendVerificationEmail(BuildContext context) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
     try {
-      await user!.sendEmailVerification();
+      await user.sendEmailVerification();
       _showSnack(context, "Verification email sent", AppColors.success);
     } catch (e) {
       _showSnack(context, "Failed to send verification email", AppColors.error);
     }
+  }
+
+  void clearData() {
+    newPasswordController.clear();
+    confirmPasswordController.clear();
+    isLoading = false;
+    notifyListeners();
   }
 
   /// Helper SnackBar

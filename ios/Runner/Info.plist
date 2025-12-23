@@ -45,5 +45,18 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>sms</string>
+		<string>tel</string>
+		<string>http</string>
+		<string>https</string>
+	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We need your location to find nearby hospitals and clinics.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>We need your location to find nearby hospitals and clinics.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>We need your location to find nearby hospitals and clinics.</string>
 </dict>
 </plist>

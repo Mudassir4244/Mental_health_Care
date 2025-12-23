@@ -3,6 +3,7 @@ import 'package:mental_healthcare/frontend/customer_interface/checkin.dart';
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
 import 'package:mental_healthcare/resources/mental_health_articles.dart';
 import 'package:mental_healthcare/resources/nearest_practitioner/nearest_doctors.dart';
+import 'package:mental_healthcare/resources/podcast_audio_screen.dart';
 
 class ResourcesScreen extends StatelessWidget {
   const ResourcesScreen({super.key});
@@ -79,9 +80,14 @@ class ResourcesScreen extends StatelessWidget {
                   ),
 
                   ResourceTile(
-                   OnTap: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (_)=>NearestHospitalsScreen()));
-                   },
+                    OnTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => NearestHospitalsScreen(),
+                        ),
+                      );
+                    },
                     icon: Icons.local_hospital_outlined,
                     title: "Nearby Clinics & Help Centers",
                     subtitle: "Find professional help around you",
@@ -90,7 +96,15 @@ class ResourcesScreen extends StatelessWidget {
                     icon: Icons.podcasts_outlined,
                     title: "Podcasts & Audio Therapy",
                     subtitle: "Relax your mind with expert audio sessions",
-                  ),                    
+                    OnTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const PodcastAudioScreen(),
+                        ),
+                      );
+                    },
+                  ),
                   ResourceTile(
                     icon: Icons.self_improvement_outlined,
                     title: "Self-care & Journaling Tools",

@@ -4,8 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mental_healthcare/backend/practionar.dart';
+import 'package:mental_healthcare/frontend/chats/screens/chat_list_screen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/Activityscreeen.dart';
+import 'package:mental_healthcare/frontend/customer_interface/checkin.dart';
 import 'package:mental_healthcare/frontend/customer_interface/finding_therapist.dart';
+import 'package:mental_healthcare/frontend/customer_interface/helpnow.dart';
 import 'package:mental_healthcare/frontend/customer_interface/insightscreen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/loginscreen.dart';
 import 'package:mental_healthcare/app_settings_components/settings.dart';
@@ -13,6 +16,7 @@ import 'package:mental_healthcare/frontend/practioner_interface/prac_homescreen.
 import 'package:mental_healthcare/frontend/practioner_interface/prac_profile.dart';
 import 'package:mental_healthcare/frontend/practioner_interface/practitionar_training.dart';
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
+import 'package:mental_healthcare/resources/resources_screen.dart';
 import 'package:provider/provider.dart';
 
 class WelcomeBanner extends StatelessWidget {
@@ -61,97 +65,120 @@ class WelcomeBanner extends StatelessWidget {
   }
 }
 
-// class FeatureGrid extends StatelessWidget {
-//   const FeatureGrid({super.key});
+class FeatureGrid extends StatelessWidget {
+  const FeatureGrid({super.key});
 
-//   Widget _buildPlaceholderIllustration(IconData icon) {
-//     return Icon(icon, size: 60, color: AppColors.primary.withOpacity(0.7));
-//   }
+  Widget _buildPlaceholderIllustration(IconData icon) {
+    return Icon(icon, size: 60, color: AppColors.primary.withOpacity(0.7));
+  }
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return GridView.count(
-//       crossAxisCount: 2,
-//       crossAxisSpacing: 16.0,
-//       mainAxisSpacing: 16.0,
-//       physics: const NeverScrollableScrollPhysics(),
-//       children: [
-//         FeatureTile(
-//           label: 'HELP NOW',
-//           illustration: _buildPlaceholderIllustration(Icons.handshake_outlined),
-//           ontap: () {},
-//           imagepath: 'assets/helpnow.png',
-//         ),
-//         FeatureTile(
-//           label: 'CHECK IN',
-//           illustration: _buildPlaceholderIllustration(Icons.map_outlined),
-//           ontap: () {},
-//           imagepath: 'assets/checkin.png',
-//         ),
-//         FeatureTile(
-//           label: 'TRAINING',
-//           illustration: _buildPlaceholderIllustration(
-//             Icons.psychology_outlined,
-//           ),
-//           ontap: () {},
-//           imagepath: 'assets/training.png',
-//         ),
-//         FeatureTile(
-//           label: 'RESOURCES',
-//           illustration: _buildPlaceholderIllustration(Icons.source_outlined),
-//           ontap: () {},
-//           imagepath: 'assets/resources.png',
-//         ),
-//       ],
-//     );
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    return GridView.count(
+      crossAxisCount: 2,
+      crossAxisSpacing: 16.0,
+      mainAxisSpacing: 16.0,
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      children: [
+        FeatureTile(
+          label: 'HELP NOW',
+          illustration: _buildPlaceholderIllustration(Icons.handshake_outlined),
+          ontap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const HelpNowScreen()),
+            );
+          },
+          imagepath: 'assets/helpnow.png',
+        ),
+        FeatureTile(
+          label: 'CHECK IN',
+          illustration: _buildPlaceholderIllustration(Icons.map_outlined),
+          ontap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const CheckInScreen()),
+            );
+          },
+          imagepath: 'assets/checkin.png',
+        ),
+        FeatureTile(
+          label: 'TRAINING',
+          illustration: _buildPlaceholderIllustration(
+            Icons.psychology_outlined,
+          ),
+          ontap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const PractitionarTraining(),
+              ),
+            );
+          },
+          imagepath: 'assets/training.png',
+        ),
+        FeatureTile(
+          label: 'RESOURCES',
+          illustration: _buildPlaceholderIllustration(Icons.source_outlined),
+          ontap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ResourcesScreen()),
+            );
+          },
+          imagepath: 'assets/resources.png',
+        ),
+      ],
+    );
+  }
+}
 
-// class FeatureTile extends StatelessWidget {
-//   final String label;
-//   final Widget illustration;
-//   final VoidCallback ontap;
-//   final String imagepath;
-//   const FeatureTile({
-//     super.key,
-//     required this.label,
-//     required this.illustration,
-//     required this.ontap,
-//     required this.imagepath,
-//   });
+class FeatureTile extends StatelessWidget {
+  final String label;
+  final Widget illustration;
+  final VoidCallback ontap;
+  final String imagepath;
+  const FeatureTile({
+    super.key,
+    required this.label,
+    required this.illustration,
+    required this.ontap,
+    required this.imagepath,
+  });
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Card(
-//       color: AppColors.cardColor,
-//       elevation: 4,
-//       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-//       child: InkWell(
-//         onTap: ontap,
-//         borderRadius: BorderRadius.circular(15),
-//         child: Padding(
-//           padding: const EdgeInsets.all(12.0),
-//           child: Column(
-//             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//             children: [
-//               Expanded(child: Image.asset(imagepath)),
-//               const SizedBox(height: 8),
-//               Text(
-//                 label,
-//                 textAlign: TextAlign.center,
-//                 style: TextStyle(
-//                   color: AppColors.primary,
-//                   fontWeight: FontWeight.bold,
-//                   fontSize: 14,
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: AppColors.cardColor,
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: InkWell(
+        onTap: ontap,
+        borderRadius: BorderRadius.circular(15),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(child: Image.asset(imagepath)),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 // --- Navigation Implementation ---
 
@@ -175,8 +202,6 @@ class prac_bottomNavbbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String currentuserId = FirebaseAuth.instance.currentUser!.uid;
-    final clients = Provider.of<PremiumClientProvider>(context);
     return Container(
       margin: const EdgeInsets.all(12),
       height: 75,
@@ -205,12 +230,13 @@ class prac_bottomNavbbar extends StatelessWidget {
             isSelected: currentScreen == 'Home',
             onTap: () => _handleNavigation(context, const PracHomescreen()),
           ),
-          // _NavItem(
-          //   icon: Icons.message,
-          //   label: "Inbox",
-          //   isSelected: currentScreen == 'Inbox',
-          //   onTap: () => _handleNavigation(context, Inboxscreen()),
-          // ),
+          _NavItem(
+            icon: Icons.message,
+            label: "Inbox",
+            isSelected: currentScreen == 'Inbox',
+            onTap: () => _handleNavigation(
+                context, const InboxScreen(isPractitioner: true)),
+          ),
           _NavItem(
             icon: Icons.model_training,
             label: "Training",
@@ -280,155 +306,271 @@ class prac_drawer extends StatefulWidget {
   const prac_drawer({super.key});
 
   @override
-  State<prac_drawer> createState() => _MydrawerState();
+  State<prac_drawer> createState() => _PracDrawerState();
 }
 
-class _MydrawerState extends State<prac_drawer> {
+class _PracDrawerState extends State<prac_drawer> {
+  User? get user => FirebaseAuth.instance.currentUser;
+
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    Color? iconColor,
+    Color? textColor,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
+      child: ListTile(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: (iconColor ?? AppColors.primary).withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: iconColor ?? AppColors.primary, size: 22),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            color: textColor ?? Colors.black87,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          size: 14,
+          color: Colors.grey.shade400,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Drawer(
-        child: Column(
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.primary, AppColors.accent],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Text(
-                  'Mind Assist',
-                  style: TextStyle(
-                    color: AppColors.cardColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                ),
-              ),
-            ),
-
-            // ✅ The main menu items inside an Expanded ListView
-            Expanded(
-              child: ListView(
-                children: [
-                  ListTile(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => Insightscreen()),
-                      );
-                    },
-                    leading: Icon(Icons.bookmark),
-                    title: Text('Insight Screen'),
-                  ),
-                  Divider(),
-
-                  ListTile(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => FullActivityScreen()),
-                      );
-                    },
-                    leading: Icon(Icons.local_activity),
-                    title: Text('Activity Screen'),
-                  ),
-
-                  Divider(),
-                  ListTile(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => FindingTherapist()),
-                      );
-                    },
-                    leading: Icon(Icons.person),
-                    title: Text('Other Practitioner'),
-                  ),
-                  Divider(),
-                  ListTile(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => PractSettings()),
-                      );
-                    },
-                    leading: Icon(Icons.settings),
-                    title: Text('Settings'),
-                  ),
-                ],
-              ),
-            ),
-
-            // ✅ This section stays fixed at the bottom
-            Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ListTile(
-                leading: Icon(Icons.logout, color: Colors.red),
-                title: Text(
-                  'Logout',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text(
-                          'Logout',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        content: const Text(
-                          'Are you Sure you wana Logout?',
-                          style: TextStyle(fontSize: 17),
-                        ),
-                        actions: [
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context); // close dialog
-                            },
-                            child: const Text('No'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              PracAuth().signOut(context).then((Value) {
-                                // Add your logout logic here (e.g., FirebaseAuth.instance.signOut())
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => LoginScreen(),
-                                  ),
-                                ); // close drawer
-                                Get.snackbar(
-                                  "Logout",
-                                  'Logout Successfully ',
-                                  backgroundColor: Colors.white.withOpacity(
-                                    0.7,
-                                  ),
-                                );
-                              });
-                              // Navigator.pop(context);
-                            },
-                            child: const Text('Yes'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
+    return Drawer(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(20),
+          bottomRight: Radius.circular(20),
         ),
+      ),
+      child: Column(
+        children: [
+          // Custom Header
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.primary, AppColors.accent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: CircleAvatar(
+                    radius: 35,
+                    backgroundColor: Colors.white,
+                    backgroundImage: user?.photoURL != null
+                        ? NetworkImage(user!.photoURL!)
+                        : null,
+                    child: user?.photoURL == null
+                        ? Text(
+                            user?.email?.substring(0, 1).toUpperCase() ?? "P",
+                            style: TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          )
+                        : null,
+                  ),
+                ),
+                const SizedBox(height: 15),
+                Text(
+                  user?.displayName ?? "Practitioner",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  user?.email ?? "Welcome back",
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          // Drawer items
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _buildDrawerItem(
+                  icon: Icons.bookmark_outline,
+                  title: 'Check In',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => CheckInScreen()),
+                    );
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.local_activity_outlined,
+                  title: 'Help Now',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => HelpNowScreen()),
+                    );
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.insights_outlined,
+                  title: 'Insights',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => Insightscreen()),
+                    );
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.calendar_month_outlined,
+                  title: 'Activities',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => FullActivityScreen()),
+                    );
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.person_search_outlined,
+                  title: 'Other Practitioner',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => FindingTherapist()),
+                    );
+                  },
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: Divider(height: 1),
+                ),
+                _buildDrawerItem(
+                  icon: Icons.settings_outlined,
+                  title: 'Settings',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => PractSettings()),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          // Logout Button
+          Padding(
+            padding: const EdgeInsets.only(bottom: 20, top: 10),
+            child: _buildDrawerItem(
+              icon: Icons.logout_rounded,
+              title: 'Logout',
+              iconColor: Colors.redAccent,
+              textColor: Colors.redAccent,
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      title: const Text(
+                        'Logout',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      content: const Text(
+                        'Are you sure you want to logout?',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: () {
+                            PracAuth().signOut(context).then((Value) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => LoginScreen(),
+                                ),
+                              );
+                              Get.snackbar(
+                                "Logout",
+                                'Logout Successfully ',
+                                backgroundColor: Colors.white.withValues(
+                                  alpha: 0.7,
+                                ),
+                              );
+                            });
+                          },
+                          child: const Text(
+                            'Logout',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

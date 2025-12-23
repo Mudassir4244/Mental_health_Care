@@ -312,6 +312,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mental_healthcare/frontend/customer_interface/therapist_details.dart';
+import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/employee_detailscreen.dart';
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -361,6 +362,13 @@ class _ChatScreenState extends State<ChatScreen> {
       },
     );
 
+    // Update parent Chat document to ensure participants field exists for querying
+    firestore.collection("Chats").doc(widget.chatId).set({
+      "participants": [widget.senderId, widget.receiverId],
+      "lastMessage": message,
+      "timestamp": FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
     Future.delayed(const Duration(milliseconds: 200), () {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
@@ -402,22 +410,37 @@ class _ChatScreenState extends State<ChatScreen> {
             const SizedBox(width: 5),
             GestureDetector(
               onTap: () async {
-                // Fetch therapist data from Firestore
+                // Fetch user data from Firestore
                 final doc = await FirebaseFirestore.instance
                     .collection('Users')
                     .doc(widget.receiverId)
                     .get();
 
                 if (doc.exists) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => TherapistDetails(data: doc.data()!),
-                    ),
-                  );
+                  final userData = doc.data()!;
+                  final role = userData['role']?.toString().toLowerCase() ?? '';
+
+                  // If the user is an employee/organization employee, show employee details
+                  if (role.contains('employee')) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            EmployeeDetailscreen(employeeId: widget.receiverId),
+                      ),
+                    );
+                  } else {
+                    // Otherwise show therapist details (default behavior)
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => TherapistDetails(data: userData),
+                      ),
+                    );
+                  }
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Therapist data not found")),
+                    const SnackBar(content: Text("User data not found")),
                   );
                 }
               },

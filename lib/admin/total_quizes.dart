@@ -1,4 +1,3 @@
-// import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:mental_healthcare/admin/admin_backend/quiz_upload_backend.dart';
@@ -17,20 +16,18 @@ class _TotalQuizesState extends State<TotalQuizes> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
-          'All Quizzes',
+          'All Quiz Papers',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         backgroundColor: Colors.deepPurple,
       ),
-
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
-            .collection('Quizes')
+            .collection('QuizPapers')
             .orderBy('timestamp', descending: true)
             .snapshots(),
-
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -50,10 +47,11 @@ class _TotalQuizesState extends State<TotalQuizes> {
             itemBuilder: (context, index) {
               final doc = quizzes[index];
               final id = doc.id;
+              final data = doc.data() as Map<String, dynamic>;
 
-              final question = doc['question'];
-              final options = List<String>.from(doc['options']);
-              final correctIndex = doc['correctIndex'];
+              final title = data['title'] ?? 'Untitled Quiz';
+              final description = data['description'] ?? '';
+              final questionCount = data['questionCount'] ?? 0;
 
               return Card(
                 elevation: 4,
@@ -61,89 +59,86 @@ class _TotalQuizesState extends State<TotalQuizes> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
+                child: ExpansionTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.deepPurple.withOpacity(0.1),
+                    child: Text(
+                      "${index + 1}",
+                      style: const TextStyle(
+                        color: Colors.deepPurple,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  title: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Question
+                      if (description.isNotEmpty)
+                        Text(
+                          description,
+                          style: TextStyle(color: Colors.grey[600]),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      const SizedBox(height: 5),
                       Text(
-                        "Q${index + 1}: $question",
+                        "$questionCount Questions",
                         style: const TextStyle(
-                          fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: Colors.deepPurple,
                         ),
                       ),
-
-                      const SizedBox(height: 12),
-
-                      // Options List
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: List.generate(options.length, (i) {
-                          final isCorrect = i == correctIndex;
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: isCorrect
-                                  ? Colors.green.withOpacity(0.2)
-                                  : Colors.grey.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(10),
-                              border: isCorrect
-                                  ? Border.all(color: Colors.green, width: 1)
-                                  : null,
-                            ),
-                            child: Text(
-                              "${String.fromCharCode(65 + i)}. ${options[i]}",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: isCorrect
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                                color: isCorrect
-                                    ? Colors.green.shade800
-                                    : Colors.black87,
-                              ),
-                            ),
-                          );
-                        }),
-                      ),
-
-                      const SizedBox(height: 15),
-
-                      // Action Buttons
-                      Row(
+                    ],
+                  ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          // EDIT (Optional Navigation)
-                          // TextButton.icon(
-                          //   onPressed: () {
-                          //     // TODO: Add your update screen here
-                          //   },
-                          //   icon: const Icon(Icons.edit, color: Colors.blue),
-                          //   label: const Text(
-                          //     "Edit",
-                          //     style: TextStyle(color: Colors.blue),
-                          //   ),
-                          // ),
-                          const SizedBox(width: 10),
-
-                          // DELETE
                           TextButton.icon(
                             onPressed: () async {
-                              await quizService.deleteQuiz(id);
+                              // Confirm Dialog
+                              bool? confirm = await showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text("Delete Quiz?"),
+                                  content: const Text(
+                                      "Are you sure you want to delete this quiz paper? This cannot be undone."),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, false),
+                                      child: const Text("Cancel"),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, true),
+                                      child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (confirm == true) {
+                                await quizService.deleteQuizPaper(id);
+                              }
                             },
                             icon: const Icon(Icons.delete, color: Colors.red),
                             label: const Text(
-                              "Delete",
+                              "Delete Paper",
                               style: TextStyle(color: Colors.red),
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               );
             },

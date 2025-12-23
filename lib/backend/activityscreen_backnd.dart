@@ -15,9 +15,14 @@ class FirestoreService {
     // We'll fetch all and let provider filter by date (simple)
     return _col('activities')
         .where('Userid', isEqualTo: uid)
-        .orderBy('dateTime', descending: true)
+        // .orderBy('dateTime', descending: true) // Removed to avoid index requirement
         .snapshots()
-        .map((snap) => snap.docs.map((d) => ActivityModel.fromDoc(d)).toList());
+        .map((snap) {
+          final list = snap.docs.map((d) => ActivityModel.fromDoc(d)).toList();
+          // Sort client-side
+          list.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+          return list;
+        });
   }
 
   Future<void> addActivity(ActivityModel m) =>
@@ -32,6 +37,14 @@ class FirestoreService {
   );
   Future<void> deleteActivity(String id) async {
     await _col('activities').doc(id).delete();
+  }
+
+  Future<void> deleteJournal(String id) async {
+    await _col('journals').doc(id).delete();
+  }
+
+  Future<void> deleteReminder(String id) async {
+    await _col('reminders').doc(id).delete();
   }
 
   Future<void> upsertMood(MoodEntry mood) async {

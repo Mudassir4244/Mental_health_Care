@@ -44,10 +44,10 @@ class EditProfileProvider extends ChangeNotifier {
       if (!doc.exists) return;
 
       final data = doc.data()!;
-      role = data['role'] ?? 'customer';
+      role = (data['role'] ?? 'customer').toString().toLowerCase();
 
       switch (role) {
-        case 'Practitioner':
+        case 'practitioner':
           usernameController.text = (data['Fullname'] ?? '') as String;
           phoneController.text = (data['Phone Number'] ?? '') as String;
           // cityController.text = (data['city'] ?? '') as String;
@@ -64,14 +64,16 @@ class EditProfileProvider extends ChangeNotifier {
           uploadedImageUrl = (data['photoUrl'] ?? '') as String?;
           break;
 
-        case 'Organization Owner':
+        case 'organization owner':
+        case 'organizationowner':
           organizationController.text =
               (data['organizationName'] ?? '') as String;
           emailController.text = (data['email'] ?? '') as String;
           uploadedImageUrl = (data['photoUrl'] ?? '') as String?;
           break;
 
-        case 'OrganizationEmployee':
+        case 'organization employee':
+        case 'organizationemployee':
           usernameController.text = (data['username'] ?? '') as String;
           emailController.text = (data['email'] ?? '') as String;
           uploadedImageUrl = (data['photoUrl'] ?? '') as String?;
@@ -116,12 +118,13 @@ class EditProfileProvider extends ChangeNotifier {
 
   /// Validate fields (basic)
   String? validateFields() {
-    if (role == 'Practitionar' ||
-        role == 'Customer' ||
-        role == 'OrganizationEmployee') {
+    if (role == 'practitioner' ||
+        role == 'customer' ||
+        role == 'organization employee' ||
+        role == 'organizationemployee') {
       if (usernameController.text.trim().isEmpty) return 'Enter username';
     }
-    if (role == 'Practitionar' || role == 'Customer') {
+    if (role == 'practitioner' || role == 'customer') {
       if (phoneController.text.trim().isEmpty) return 'Enter phone';
     }
     return null;
@@ -143,7 +146,7 @@ class EditProfileProvider extends ChangeNotifier {
       final updateData = <String, dynamic>{};
 
       switch (role) {
-        case 'Practitionar':
+        case 'practitioner':
           updateData.addAll({
             'username': usernameController.text.trim(),
             'phone': phoneController.text.trim(),
@@ -154,7 +157,7 @@ class EditProfileProvider extends ChangeNotifier {
           });
           break;
 
-        case 'Customer':
+        case 'customer':
           updateData.addAll({
             'username': usernameController.text.trim(),
             'phone': phoneController.text.trim(),
@@ -162,14 +165,16 @@ class EditProfileProvider extends ChangeNotifier {
           });
           break;
 
-        case 'OrganizationOwner':
+        case 'organization owner':
+        case 'organizationowner':
           updateData.addAll({
             'organizationName': organizationController.text.trim(),
             'email': emailController.text.trim(),
           });
           break;
 
-        case 'OrganizationEmployee':
+        case 'organization employee':
+        case 'organizationemployee':
           updateData.addAll({
             'username': usernameController.text.trim(),
             'email': emailController.text.trim(),
@@ -207,6 +212,24 @@ class EditProfileProvider extends ChangeNotifier {
     organizationController.dispose();
     emailController.dispose();
     super.dispose();
+  }
+
+  void clearData() {
+    usernameController.clear();
+    phoneController.clear();
+    cityController.clear();
+    experienceController.clear();
+    specializationController.clear();
+    bioController.clear();
+    organizationController.clear();
+    emailController.clear();
+
+    pickedImageFile = null;
+    uploadedImageUrl = null;
+    isLoading = false;
+    isSaving = false;
+    role = null;
+    notifyListeners();
   }
 }
 
@@ -267,17 +290,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       const SizedBox(height: 20),
 
                       // Role-based fields
-                      if (prov.role == 'Practitionar' ||
-                          prov.role == 'Customer' ||
-                          prov.role == 'OrganizationEmployee') ...[
+                      if (prov.role == 'practitioner' ||
+                          prov.role == 'customer' ||
+                          prov.role == 'organization employee' ||
+                          prov.role == 'organizationemployee') ...[
                         _buildTextField(
                           controller: prov.usernameController,
                           label: 'Username',
                         ),
                       ],
 
-                      if (prov.role == 'Practitionar' ||
-                          prov.role == 'Customer') ...[
+                      if (prov.role == 'practitioner' ||
+                          prov.role == 'customer') ...[
                         const SizedBox(height: 12),
                         _buildTextField(
                           controller: prov.phoneController,
@@ -291,7 +315,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                       ],
 
-                      if (prov.role == 'Practitionar') ...[
+                      if (prov.role == 'practitioner') ...[
                         const SizedBox(height: 12),
                         _buildTextField(
                           controller: prov.experienceController,
@@ -310,7 +334,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                       ],
 
-                      if (prov.role == 'OrganizationOwner') ...[
+                      if (prov.role == 'organization owner' ||
+                          prov.role == 'organizationowner') ...[
                         _buildTextField(
                           controller: prov.organizationController,
                           label: 'Organization Name',
@@ -322,7 +347,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                       ],
 
-                      if (prov.role == 'OrganizationEmployee') ...[
+                      if (prov.role == 'organization employee' ||
+                          prov.role == 'organizationemployee') ...[
                         const SizedBox(height: 12),
                         _buildTextField(
                           controller: prov.emailController,

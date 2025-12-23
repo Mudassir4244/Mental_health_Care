@@ -198,6 +198,27 @@ class ActivityProvider extends ChangeNotifier {
     super.dispose();
   }
 
+  void clearData() {
+    try {
+      _activitySub.cancel();
+    } catch (_) {}
+    try {
+      _moodSub.cancel();
+    } catch (_) {}
+    try {
+      _journalSub.cancel();
+    } catch (_) {}
+    try {
+      _remSub.cancel();
+    } catch (_) {}
+
+    activities = [];
+    moods = [];
+    journals = [];
+    reminders = [];
+    notifyListeners();
+  }
+
   // Helpers
   List<ActivityModel> activitiesForDay(DateTime date) {
     final start = DateTime(date.year, date.month, date.day);
@@ -239,8 +260,10 @@ class ActivityProvider extends ChangeNotifier {
   Future<void> upsertMood(MoodEntry mood) => _service.upsertMood(mood);
 
   Future<void> addJournal(JournalEntry j) => _service.addJournal(j);
+  Future<void> deleteJournal(String id) => _service.deleteJournal(id);
 
   Future<void> addReminder(SessionReminder r) => _service.addReminder(r);
+  Future<void> deleteReminder(String id) => _service.deleteReminder(id);
 
   Future<void> toggleReminderDone(String id, bool done) =>
       _service.toggleReminderDone(id, done);
@@ -316,7 +339,6 @@ class _FullActivityScreenState extends State<FullActivityScreen> {
           body: Consumer<ActivityProvider>(
             builder: (context, prov, _) {
               final activities = prov.activitiesForDay(selectedDate);
-              final mood = prov.moodForDay(selectedDate);
               final journals = prov.journalsForDay(selectedDate);
               final reminders = prov.remindersForDay(selectedDate);
               final fs = FirestoreService();
@@ -329,70 +351,29 @@ class _FullActivityScreenState extends State<FullActivityScreen> {
                     end: Alignment.bottomRight,
                   ),
                 ),
-                child: Column(
-                  children: [
-                    // Date selector row (simple horizontal week)
-                    // DateSelector(
-                    //   selected: selectedDate,
-                    //   onSelect: (d) => setState(() => selectedDate = d),
-                    // ),
-
-                    // Today summary
-                    // Padding(
-                    //   padding: const EdgeInsets.all(12.0),
-                    //   child: _TodaySummary(
-                    //     activitiesCount: activities.length,
-                    //     moodScore: mood?.moodScore,
-                    //     journalsCount: journals.length,
-                    //     remindersCount: reminders.length,
-                    //   ),
-                    // ),
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: FutureBuilder<TodaySummary>(
-                        future: FirestoreService()
-                            .fetchTodaySummary(), // Call your backend function
-                        builder: (context, snapshot) {
-                          // 🔄 Loading state
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          }
-
-                          // ❌ Error state
-                          if (snapshot.hasError) {
-                            return Center(
-                              child: Text('Error: ${snapshot.error}'),
-                            );
-                          }
-
-                          // ✅ Data loaded
-                          if (snapshot.hasData) {
-                            final data = snapshot.data!;
-
-                            return _TodaySummary(
-                              activitiesCount: data.activitiesCount,
-                              moodScore: data.moodScore?.toInt(),
-                              journalsCount: data.journalsCount,
-                              remindersCount: data.remindersCount,
-                            );
-                          }
-
-                          // 😶 No data case
-                          return const Center(
-                            child: Text('No data for today.'),
-                          );
-                        },
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      // Date selector row (simple horizontal week)
+                      DateSelector(
+                        selected: selectedDate,
+                        onSelect: (d) => setState(() => selectedDate = d),
                       ),
-                    ),
 
-                    const SizedBox(height: 8),
+                      // Today summary
+                      Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: _TodaySummary(
+                          activitiesCount: activities.length,
+                          journalsCount: journals.length,
+                          remindersCount: reminders.length,
+                        ),
+                      ),
 
-                    // Timeline & Lists
-                    Expanded(
-                      child: SingleChildScrollView(
+                      const SizedBox(height: 8),
+
+                      // Timeline & Lists
+                      Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -496,43 +477,8 @@ class _FullActivityScreenState extends State<FullActivityScreen> {
                                 title: 'No journal entries',
                                 subtitle: 'Write a short reflection.',
                               ),
-                            ...journals
-                                .map((j) => _JournalTile(entry: j))
-                                ,
+                            ...journals.map((j) => _JournalTile(entry: j)),
 
-                            const SizedBox(height: 16),
-
-                            // Mood
-                            // const Text(
-                            //   "Mood",
-                            //   style: TextStyle(
-                            //     fontSize: 18,
-                            //     fontWeight: FontWeight.bold,
-                            //     color: AppColors.sectionTitleColor,
-                            //   ),
-                            // ),
-                            // const SizedBox(height: 8),
-
-                            // _MoodCard(
-                            //   date: selectedDate,
-                            //   mood: mood,
-                            //   onSave: (score, note) async {
-                            //     final me = MoodEntry(
-                            //       id: '',
-                            //       date: DateTime(
-                            //         selectedDate.year,
-                            //         selectedDate.month,
-                            //         selectedDate.day,
-                            //       ),
-                            //       moodScore: score,
-                            //       note: note,
-                            //     );
-                            //     await prov.upsertMood(me);
-                            //     ScaffoldMessenger.of(context).showSnackBar(
-                            //       const SnackBar(content: Text('Mood saved')),
-                            //     );
-                            //   },
-                            // ),
                             const SizedBox(height: 16),
 
                             // Reminders
@@ -560,12 +506,14 @@ class _FullActivityScreenState extends State<FullActivityScreen> {
                                 ),
                               ),
 
-                            const SizedBox(height: 40),
+                            const SizedBox(
+                              height: 80,
+                            ), // Added extra padding for FAB
                           ],
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             },
@@ -641,7 +589,7 @@ class _FullActivityScreenState extends State<FullActivityScreen> {
 /// UI Components & small widgets
 /// -----------------------------
 
-class DateSelector extends StatelessWidget {
+class DateSelector extends StatefulWidget {
   final DateTime selected;
   final void Function(DateTime) onSelect;
 
@@ -652,8 +600,47 @@ class DateSelector extends StatelessWidget {
   });
 
   @override
+  State<DateSelector> createState() => _DateSelectorState();
+}
+
+class _DateSelectorState extends State<DateSelector> {
+  late ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Calculate initial offset to center the selected date (approximate)
+    // Item width = 72 + 8 spacing = 80
+    final dayIndex = widget.selected.day - 1;
+    final offset = (dayIndex * 80.0) - 150; // shift back to center somewhat
+    _scrollController = ScrollController(
+      initialScrollOffset: offset < 0 ? 0 : offset,
+    );
+  }
+
+  @override
+  void didUpdateWidget(DateSelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selected.month != widget.selected.month) {
+      // If month changes, reset scroll or jump to day
+      final dayIndex = widget.selected.day - 1;
+      final offset = (dayIndex * 80.0) - 150;
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(offset < 0 ? 0 : offset);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
+    final selected = widget.selected;
 
     // First and last day of current month
     final firstDay = DateTime(selected.year, selected.month, 1);
@@ -671,13 +658,44 @@ class DateSelector extends StatelessWidget {
         // --------- Header ----------
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            "${DateFormat.yMMMM().format(selected)} • Today: ${now.day}",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textColorPrimary,
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "${DateFormat.yMMMM().format(selected)} • Today: ${now.day}",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textColorPrimary,
+                ),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left),
+                    onPressed: () {
+                      final prevMonth = DateTime(
+                        selected.year,
+                        selected.month - 1,
+                        1,
+                      );
+                      widget.onSelect(prevMonth);
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.chevron_right),
+                    onPressed: () {
+                      final nextMonth = DateTime(
+                        selected.year,
+                        selected.month + 1,
+                        1,
+                      );
+                      widget.onSelect(nextMonth);
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 12),
@@ -686,6 +704,7 @@ class DateSelector extends StatelessWidget {
         SizedBox(
           height: 92,
           child: ListView.separated(
+            controller: _scrollController,
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
             scrollDirection: Axis.horizontal,
             itemCount: days.length,
@@ -704,10 +723,10 @@ class DateSelector extends StatelessWidget {
                   d.day == now.day;
 
               return GestureDetector(
-                onTap: () => onSelect(d),
+                onTap: () => widget.onSelect(d),
                 child: Container(
                   width: 72,
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(4), // Reduced padding
                   decoration: BoxDecoration(
                     color: isSelected ? AppColors.primary : Colors.white,
                     borderRadius: BorderRadius.circular(12),
@@ -731,9 +750,10 @@ class DateSelector extends StatelessWidget {
                               ? Colors.white
                               : AppColors.textColorPrimary,
                           fontWeight: FontWeight.w600,
+                          fontSize: 13, // Slightly reduced font size
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 2), // Reduced spacing
                       Text(
                         d.day.toString(),
                         style: TextStyle(
@@ -758,61 +778,109 @@ class DateSelector extends StatelessWidget {
 
 class _TodaySummary extends StatelessWidget {
   final int activitiesCount;
-  final int? moodScore;
   final int journalsCount;
   final int remindersCount;
 
   const _TodaySummary({
     required this.activitiesCount,
-    required this.moodScore,
     required this.journalsCount,
     required this.remindersCount,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _SummaryItem(label: 'Activities', value: activitiesCount.toString()),
-          // _SummaryItem(
-          //   label: 'Mood',
-          //   value: moodScore == null ? '-' : moodScore.toString(),
-          // ),
-          _SummaryItem(label: 'Journals', value: journalsCount.toString()),
-          _SummaryItem(label: 'Reminders', value: remindersCount.toString()),
-        ],
-      ),
+    return Row(
+      children: [
+        Expanded(
+          child: _SummaryCard(
+            label: 'Activities',
+            value: activitiesCount.toString(),
+            icon: Icons.check_circle_outline,
+            color: Colors.blue,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _SummaryCard(
+            label: 'Journals',
+            value: journalsCount.toString(),
+            icon: Icons.book,
+            color: Colors.orange,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _SummaryCard(
+            label: 'Reminders',
+            value: remindersCount.toString(),
+            icon: Icons.notifications_none,
+            color: Colors.redAccent,
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _SummaryItem extends StatelessWidget {
+class _SummaryCard extends StatelessWidget {
   final String label;
   final String value;
-  const _SummaryItem({required this.label, required this.value});
+  final IconData icon;
+  final Color color;
+
+  const _SummaryCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.primary,
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-        ),
-        const SizedBox(height: 6),
-        Text(label, style: TextStyle(color: Colors.grey.shade600)),
-      ],
+        ],
+        border: Border.all(color: color.withOpacity(0.1)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -826,31 +894,114 @@ class _ActivityTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final time = DateFormat.jm().format(activity.dateTime);
+    final color = _colorForType(activity.type);
+
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
+      margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: _colorForType(activity.type).withOpacity(0.15),
-          child: Icon(
-            _iconForType(activity.type),
-            color: _colorForType(activity.type),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              // Colored Strip
+              Container(width: 6, color: color),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      // Icon
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          _iconForType(activity.type),
+                          color: color,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // Content
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              activity.title,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                decoration: activity.completed
+                                    ? TextDecoration.lineThrough
+                                    : null,
+                                color: activity.completed
+                                    ? Colors.grey
+                                    : Colors.black87,
+                              ),
+                            ),
+                            if (activity.notes != null &&
+                                activity.notes!.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                activity.notes!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 4),
+                            Text(
+                              time,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade500,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Checkbox
+                      Transform.scale(
+                        scale: 1.2,
+                        child: Checkbox(
+                          value: activity.completed,
+                          onChanged: (v) => onToggle(v ?? false),
+                          activeColor: color,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          side: BorderSide(color: Colors.grey.shade400),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        title: Text(
-          activity.title,
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        subtitle: Text(activity.notes ?? ''),
-        trailing: Checkbox(
-          value: activity.completed,
-          onChanged: (v) => onToggle(v ?? false),
-          activeColor: AppColors.primary,
-        ),
-        dense: false,
       ),
     );
   }
@@ -858,28 +1009,28 @@ class _ActivityTile extends StatelessWidget {
   IconData _iconForType(ActivityType t) {
     switch (t) {
       case ActivityType.meditation:
-        return Icons.self_improvement;
+        return Icons.self_improvement_rounded;
       case ActivityType.therapy:
-        return Icons.local_hospital;
+        return Icons.spa_rounded;
       case ActivityType.journal:
-        return Icons.book;
+        return Icons.menu_book_rounded;
       case ActivityType.breathing:
-        return Icons.air;
+        return Icons.air_rounded;
       default:
-        return Icons.event;
+        return Icons.task_alt_rounded;
     }
   }
 
   Color _colorForType(ActivityType t) {
     switch (t) {
       case ActivityType.meditation:
-        return Colors.teal;
+        return const Color(0xFF009688); // Teal
       case ActivityType.therapy:
-        return Colors.deepOrange;
+        return const Color(0xFFFF7043); // Deep Orange
       case ActivityType.journal:
-        return AppColors.accent;
+        return const Color(0xFF5C6BC0); // Indigo
       case ActivityType.breathing:
-        return Colors.blue;
+        return const Color(0xFF42A5F5); // Blue
       default:
         return AppColors.primary;
     }
@@ -892,140 +1043,115 @@ class _JournalTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        title: Text(
-          entry.title,
-          style: const TextStyle(fontWeight: FontWeight.w600),
+    return GestureDetector(
+      onLongPress: () {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Delete Journal?'),
+            content: Text('Delete "${entry.title}"?'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Provider.of<ActivityProvider>(
+                    context,
+                    listen: false,
+                  ).deleteJournal(entry.id);
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Journal deleted')),
+                  );
+                },
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+            ],
+          ),
+        );
+      },
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Text(entry.title),
+            content: SingleChildScrollView(
+              child: Text(
+                entry.content,
+                style: const TextStyle(fontSize: 16, height: 1.5),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF9C4), // Light yellow for journal feel
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-        subtitle: Text(
-          entry.content,
-          maxLines: 3,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Text(DateFormat('MMM d').format(entry.date)),
-        onTap: () {
-          // open full journal view dialog
-          showDialog(
-            context: context,
-            builder: (_) => AlertDialog(
-              title: Text(entry.title),
-              content: SingleChildScrollView(child: Text(entry.content)),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Close'),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.auto_stories,
+                  color: Colors.orange.shade800,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    entry.title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.brown.shade800,
+                    ),
+                  ),
+                ),
+                Text(
+                  DateFormat('MMM d').format(entry.date),
+                  style: TextStyle(fontSize: 12, color: Colors.brown.shade600),
                 ),
               ],
             ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _MoodCard extends StatefulWidget {
-  final DateTime date;
-  final MoodEntry? mood;
-  final Future<void> Function(int score, String? note) onSave;
-
-  const _MoodCard({
-    required this.date,
-    required this.mood,
-    required this.onSave,
-  });
-
-  @override
-  State<_MoodCard> createState() => _MoodCardState();
-}
-
-class _MoodCardState extends State<_MoodCard> {
-  int _score = 0;
-  TextEditingController noteC = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.mood != null) {
-      _score = widget.mood!.moodScore;
-      noteC.text = widget.mood!.note ?? '';
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Text(
-            'How are you feeling today?',
-            style: TextStyle(color: AppColors.textColorPrimary),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(5, (i) {
-              final idx = i + 1;
-              final selected = _score == idx;
-              return GestureDetector(
-                onTap: () => setState(() => _score = idx),
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: selected
-                          ? AppColors.primary
-                          : Colors.grey.shade200,
-                      child: Text(
-                        idx.toString(),
-                        style: TextStyle(
-                          color: selected ? Colors.white : Colors.black,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(['😞', '😐', '🙂', '😊', '🤩'][i]),
-                  ],
-                ),
-              );
-            }),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: noteC,
-            decoration: const InputDecoration(
-              hintText: 'Add a short note (optional)',
-              border: OutlineInputBorder(),
-              isDense: true,
+            const SizedBox(height: 8),
+            Text(
+              entry.content,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.brown.shade700,
+                height: 1.4,
+              ),
             ),
-            maxLines: 2,
-          ),
-          const SizedBox(height: 8),
-          ElevatedButton(
-            onPressed: () async {
-              await widget
-                  .onSave(_score, noteC.text.isEmpty ? null : noteC.text)
-                  .then((_) {
-                    noteC.clear();
-                  });
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text(
-              'Save Mood',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1040,21 +1166,92 @@ class _ReminderTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final time = DateFormat.jm().format(reminder.dateTime);
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        leading: Icon(Icons.calendar_today, color: AppColors.primary),
-        title: Text(reminder.title),
-        subtitle: Text(
-          '${DateFormat.yMMMd().format(reminder.dateTime)} • $time',
+    return GestureDetector(
+      onLongPress: () {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Delete Reminder?'),
+            content: Text('Delete "${reminder.title}"?'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Provider.of<ActivityProvider>(
+                    context,
+                    listen: false,
+                  ).deleteReminder(reminder.id);
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Reminder deleted')),
+                  );
+                },
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+            ],
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        trailing: Checkbox(
-          value: reminder.done,
-          onChanged: (v) => onToggle(v ?? false),
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 8,
+          ),
+          leading: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFEBEE), // Light red
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.notifications_active_rounded,
+              color: Color(0xFFE57373),
+            ),
+          ),
+          title: Text(
+            reminder.title,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              decoration: reminder.done ? TextDecoration.lineThrough : null,
+              color: reminder.done ? Colors.grey : Colors.black87,
+            ),
+          ),
+          subtitle: Text(
+            '${DateFormat.yMMMd().format(reminder.dateTime)} • $time',
+            style: TextStyle(color: Colors.grey.shade600),
+          ),
+          trailing: Transform.scale(
+            scale: 1.2,
+            child: Checkbox(
+              value: reminder.done,
+              onChanged: (v) => onToggle(v ?? false),
+              activeColor: const Color(0xFFE57373),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
+              side: BorderSide(color: Colors.grey.shade400),
+            ),
+          ),
         ),
       ),
     );
@@ -1069,28 +1266,26 @@ class _EmptyPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
+      margin: const EdgeInsets.symmetric(vertical: 24),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.sentiment_dissatisfied),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                Text(subtitle, style: TextStyle(color: Colors.grey.shade600)),
-              ],
+          Icon(Icons.spa_outlined, size: 64, color: Colors.grey.shade300),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade600,
             ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
           ),
         ],
       ),
@@ -1126,154 +1321,320 @@ class _AddActionSheetState extends State<_AddActionSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        // bottom: MediaQuery.of(context).viewInsets.bottom + 12,
-        left: 12,
-        right: 12,
-        top: 12,
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        20,
+        20,
+        MediaQuery.of(context).viewInsets.bottom + 20,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
           const Text(
-            'Create Activity / Reminder',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            'Create New',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
           ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: ActivityType.values.map((t) {
-              return ChoiceChip(
-                label: Text(t.name.capitalize()),
-                selected: _type == t,
-                onSelected: (_) => setState(() => _type = t),
-              );
-            }).toList(),
+          const SizedBox(height: 20),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: ActivityType.values.map((t) {
+                final isSelected = _type == t;
+                return GestureDetector(
+                  onTap: () => setState(() => _type = t),
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primary
+                          : Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected
+                            ? AppColors.primary
+                            : Colors.transparent,
+                      ),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: AppColors.primary.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ]
+                          : [],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _getIcon(t),
+                          size: 20,
+                          color: isSelected
+                              ? Colors.white
+                              : Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          t == ActivityType.therapy
+                              ? 'Reminder'
+                              : t.name.capitalize(),
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : Colors.black87,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 24),
           TextField(
             controller: _title,
-            decoration: const InputDecoration(labelText: 'Title'),
+            decoration: InputDecoration(
+              labelText: 'Title',
+              hintText: 'What are you doing?',
+              filled: true,
+              fillColor: Colors.grey.shade50,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              prefixIcon: const Icon(Icons.title),
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
           TextField(
             controller: _notes,
-            decoration: const InputDecoration(labelText: 'Notes (optional)'),
+            decoration: InputDecoration(
+              labelText: 'Notes (Optional)',
+              hintText: 'Add details...',
+              filled: true,
+              fillColor: Colors.grey.shade50,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              prefixIcon: const Icon(Icons.notes),
+            ),
+            maxLines: 3,
+            minLines: 1,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 20),
           Row(
             children: [
               Expanded(
-                child: Text(DateFormat.yMMMd().add_jm().format(_dateTime)),
-              ),
-              TextButton(
-                onPressed: () async {
-                  final d = await showDatePicker(
-                    context: context,
-                    initialDate: _dateTime,
-                    firstDate: DateTime.now().subtract(
-                      const Duration(days: 365),
+                child: GestureDetector(
+                  onTap: _pickDate,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
                     ),
-                    lastDate: DateTime.now().add(const Duration(days: 365)),
-                  );
-                  if (d == null) return;
-                  final t = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay.fromDateTime(_dateTime),
-                  );
-                  if (t == null) return;
-                  setState(
-                    () => _dateTime = DateTime(
-                      d.year,
-                      d.month,
-                      d.day,
-                      t.hour,
-                      t.minute,
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.calendar_today,
+                          size: 18,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          DateFormat.yMMMd().format(_dateTime),
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                      ],
                     ),
-                  );
-                },
-                child: const Text('Change'),
+                  ),
+                ),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
+              const SizedBox(width: 12),
               Expanded(
-                child: SingleChildScrollView(
-                  child: Expanded(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        if (_title.text.trim().isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Enter title')),
-                          );
-                          return;
-                        }
-
-                        // If type is journal -> open journal create popup
-                        if (_type == ActivityType.journal) {
-                          // create journal
-                          final prov = Provider.of<ActivityProvider>(
-                            context,
-                            listen: false,
-                          );
-                          await prov.addJournal(
-                            JournalEntry(
-                              id: '',
-                              date: _dateTime,
-                              title: _title.text.trim(),
-                              content: _notes.text.trim(),
-                            ),
-                          );
-                          Navigator.pop(context);
-                          return;
-                        }
-
-                        // If type is therapy -> treat as reminder
-                        if (_type == ActivityType.therapy) {
-                          final prov = Provider.of<ActivityProvider>(
-                            context,
-                            listen: false,
-                          );
-                          await prov.addReminder(
-                            SessionReminder(
-                              id: FirebaseAuth.instance.currentUser!.uid,
-                              dateTime: _dateTime,
-                              title: _title.text.trim(),
-                              notes: _notes.text.trim(),
-                            ),
-                          );
-                          Navigator.pop(context);
-                          return;
-                        }
-
-                        widget.onCreate(
-                          _type,
-                          _title.text.trim(),
-                          _notes.text.trim(),
-                          _dateTime,
-                          userId,
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.accent,
-                      ),
-                      child: const Text(
-                        'Create',
-                        style: TextStyle(color: Colors.white),
-                      ),
+                child: GestureDetector(
+                  onTap: _pickTime,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.access_time,
+                          size: 18,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          DateFormat.jm().format(_dateTime),
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
             ],
           ),
-          // const SizedBox(height: 12),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: _submit,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Create',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  IconData _getIcon(ActivityType t) {
+    switch (t) {
+      case ActivityType.meditation:
+        return Icons.self_improvement;
+      case ActivityType.therapy:
+        return Icons.spa;
+      case ActivityType.journal:
+        return Icons.menu_book;
+      case ActivityType.breathing:
+        return Icons.air;
+      default:
+        return Icons.task_alt;
+    }
+  }
+
+  Future<void> _pickDate() async {
+    final d = await showDatePicker(
+      context: context,
+      initialDate: _dateTime,
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (d != null) {
+      setState(() {
+        _dateTime = DateTime(
+          d.year,
+          d.month,
+          d.day,
+          _dateTime.hour,
+          _dateTime.minute,
+        );
+      });
+    }
+  }
+
+  Future<void> _pickTime() async {
+    final t = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_dateTime),
+    );
+    if (t != null) {
+      setState(() {
+        _dateTime = DateTime(
+          _dateTime.year,
+          _dateTime.month,
+          _dateTime.day,
+          t.hour,
+          t.minute,
+        );
+      });
+    }
+  }
+
+  Future<void> _submit() async {
+    if (_title.text.trim().isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter a title')));
+      return;
+    }
+
+    // Journal Logic
+    if (_type == ActivityType.journal) {
+      final prov = Provider.of<ActivityProvider>(context, listen: false);
+      await prov.addJournal(
+        JournalEntry(
+          id: '',
+          date: _dateTime,
+          title: _title.text.trim(),
+          content: _notes.text.trim(),
+        ),
+      );
+      if (mounted) Navigator.pop(context);
+      return;
+    }
+
+    // Therapy -> Reminder Logic
+    if (_type == ActivityType.therapy) {
+      final prov = Provider.of<ActivityProvider>(context, listen: false);
+      await prov.addReminder(
+        SessionReminder(
+          id: FirebaseAuth.instance.currentUser!.uid,
+          dateTime: _dateTime,
+          title: _title.text.trim(),
+          notes: _notes.text.trim(),
+        ),
+      );
+      if (mounted) Navigator.pop(context);
+      return;
+    }
+
+    // Default Activity Logic
+    widget.onCreate(
+      _type,
+      _title.text.trim(),
+      _notes.text.trim(),
+      _dateTime,
+      userId,
+    );
+    // widget.onCreate handles Navigator.pop
   }
 }
 

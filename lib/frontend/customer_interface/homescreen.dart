@@ -5,6 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:mental_healthcare/frontend/chats/screens/chat_list_screen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/profilescreen.dart';
+import 'package:mental_healthcare/frontend/customer_interface/loginscreen.dart';
 import 'package:mental_healthcare/frontend/widgets/widgets.dart'
     hide WelcomeBanner;
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
@@ -23,9 +24,10 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     DateTime? lastPressed;
     Map<String, dynamic>? profile;
-    final name = FirebaseAuth.instance.currentUser!.displayName;
+    final user = FirebaseAuth.instance.currentUser;
     final provider = Provider.of<ProfileProvider>(context);
     final data = provider.profile;
+    final name = data?['username'] ?? user?.displayName ?? "Guest";
     return WillPopScope(
       onWillPop: () async {
         final now = DateTime.now();
@@ -53,17 +55,6 @@ class HomeScreen extends StatelessWidget {
               icon: const Icon(Icons.menu),
             ),
           ),
-          actions: [
-            IconButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => InboxScreen()),
-                );
-              },
-              icon: Icon(Icons.near_me_rounded),
-            ),
-          ],
           centerTitle: true,
           title: const Text(
             'MindAssist',

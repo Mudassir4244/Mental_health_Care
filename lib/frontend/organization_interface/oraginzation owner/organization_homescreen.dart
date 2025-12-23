@@ -1,10 +1,9 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:mental_healthcare/frontend/chats/screens/chat_list_screen.dart';
+import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/organ_inbox.dart';
 import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/employee_detailscreen.dart';
 import 'package:mental_healthcare/frontend/organization_interface/widgets/organ_widigets.dart';
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
@@ -103,7 +102,7 @@ class _organ_owner_homescreenState extends State<organ_owner_homescreen>
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => InboxScreen()),
+                    MaterialPageRoute(builder: (_) => OrganationInbox()),
                   );
                 },
                 icon: Icon(Icons.near_me),
@@ -278,7 +277,6 @@ class _organ_owner_homescreenState extends State<organ_owner_homescreen>
                                         MaterialPageRoute(
                                           builder: (_) => EmployeeDetailscreen(
                                             employeeId: employees[index].id,
-                                            
                                           ),
                                         ),
                                       );

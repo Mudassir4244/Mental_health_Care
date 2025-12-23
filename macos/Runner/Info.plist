@@ -28,5 +28,9 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSLocationUsageDescription</key>
+	<string>We need your location to find nearby hospitals and clinics.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We need your location to find nearby hospitals and clinics.</string>
 </dict>
 </plist>

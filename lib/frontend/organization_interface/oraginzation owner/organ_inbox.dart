@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:mental_healthcare/frontend/chats/screens/chat_list_screen.dart';
 import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/organization_homescreen.dart';
 import 'package:mental_healthcare/frontend/organization_interface/widgets/organ_widigets.dart';
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
@@ -13,181 +15,41 @@ class OrganationInbox extends StatefulWidget {
 
 class _OrganationInboxState extends State<OrganationInbox>
     with SingleTickerProviderStateMixin {
-  final List<Map<String, dynamic>> inboxMessages = [
-    {
-      'name': 'Sarah Khan',
-      'message': 'Thank you for today’s session. Feeling better already!',
-      'time': '2m ago',
-      'unread': true,
-    },
-    {
-      'name': 'Ali Raza',
-      'message': 'Can we reschedule our meeting to Monday?',
-      'time': '1h ago',
-      'unread': false,
-    },
-    {
-      'name': 'Emily Carter',
-      'message': 'I tried the breathing exercise, it really helps.',
-      'time': '3h ago',
-      'unread': true,
-    },
-    {
-      'name': 'Ahmed Hassan',
-      'message': 'Will you be available for a call tomorrow?',
-      'time': 'Yesterday',
-      'unread': false,
-    },
-    {
-      'name': 'Maria Johnson',
-      'message': 'Appreciate your guidance, thank you!',
-      'time': '2 days ago',
-      'unread': false,
-    },
-  ];
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  late AnimationController _controller;
+  String? currentUserId;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 1),
-    );
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  Widget _buildInboxItem(Map<String, dynamic> msg, int index) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        final slide = Tween<Offset>(
-          begin: Offset(0, 0.2 * (index + 1)),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-
-        return SlideTransition(
-          position: slide,
-          child: Opacity(
-            opacity: _controller.value,
-            child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: msg['unread']
-                    ? Colors.white
-                    : Colors.grey.shade100, // highlight unread messages
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 6,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                leading: CircleAvatar(
-                  radius: 26,
-                  backgroundColor: AppColors.primary.withOpacity(0.15),
-                  child: Text(
-                    msg['name'][0],
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ),
-                title: Text(
-                  msg['name'],
-                  style: TextStyle(
-                    fontWeight: msg['unread']
-                        ? FontWeight.bold
-                        : FontWeight.w500,
-                    fontSize: 17,
-                    color: const Color(0xff1E1E1E),
-                  ),
-                ),
-                subtitle: Text(
-                  msg['message'],
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: msg['unread']
-                        ? Colors.black87
-                        : Colors.grey.shade700,
-                    fontSize: 14,
-                  ),
-                ),
-                trailing: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      msg['time'],
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    if (msg['unread'])
-                      Container(
-                        margin: const EdgeInsets.only(top: 6),
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                  ],
-                ),
-                onTap: () {
-                  Get.snackbar(
-                    'Inbox',
-                    "Opening chat with ${msg['name']}...",
-                    backgroundColor: Colors.white.withOpacity(0.7),
-                  );
-                },
-              ),
-            ),
-          ),
-        );
-      },
-    );
+    currentUserId = _auth.currentUser?.uid;
   }
 
   @override
   Widget build(BuildContext context) {
+    if (currentUserId == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return WillPopScope(
       onWillPop: () async {
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => organ_owner_homescreen()),
+          MaterialPageRoute(builder: (_) => const organ_owner_homescreen()),
         );
         return true;
       },
-
       child: Scaffold(
         backgroundColor: const Color(0xfff8f9fb),
         appBar: AppBar(
-          iconTheme: IconThemeData(color: Colors.white),
+          iconTheme: const IconThemeData(color: Colors.white),
           leading: Builder(
             builder: (context) => IconButton(
               onPressed: () {
                 Scaffold.of(context).openDrawer();
               },
-              icon: Icon(Icons.menu),
+              icon: const Icon(Icons.menu),
             ),
           ),
           centerTitle: true,
@@ -199,11 +61,19 @@ class _OrganationInboxState extends State<OrganationInbox>
               fontSize: 22,
             ),
           ),
-          backgroundColor: AppColors.primary,
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.primary, AppColors.accent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
           elevation: 4,
           shadowColor: AppColors.primary.withOpacity(0.3),
         ),
-        drawer: Mydrawer(),
+        drawer: const Mydrawer(),
         body: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -214,7 +84,8 @@ class _OrganationInboxState extends State<OrganationInbox>
           ),
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: ListView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
                   'Messages 💌',
@@ -226,18 +97,87 @@ class _OrganationInboxState extends State<OrganationInbox>
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Stay connected with your clients and respond quickly.',
+                  'Stay connected with your team and respond quickly.',
                   style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
                 ),
                 const SizedBox(height: 20),
-                ...inboxMessages.asMap().entries.map(
-                  (entry) => _buildInboxItem(entry.value, entry.key),
+                Expanded(
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: _firestore.collection("Chats").snapshots(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      var chatDocs = snapshot.data!.docs;
+
+                      // Filter chats for the current organization owner
+                      chatDocs = chatDocs.where((doc) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        // 1. Check participants array if exists
+                        if (data.containsKey('participants') &&
+                            data['participants'] is List) {
+                          final participants = List.from(data['participants']);
+                          if (participants.contains(currentUserId)) return true;
+                        }
+                        // 2. Fallback to senderId/receiverId check
+                        return data['senderId'] == currentUserId ||
+                            data['receiverId'] == currentUserId;
+                      }).toList();
+
+                      // Sort by timestamp (newest first)
+                      chatDocs.sort((a, b) {
+                        final dataA = a.data() as Map<String, dynamic>;
+                        final dataB = b.data() as Map<String, dynamic>;
+                        Timestamp? tA = dataA['timestamp'];
+                        Timestamp? tB = dataB['timestamp'];
+                        if (tA == null && tB == null) return 0;
+                        if (tA == null) return 1;
+                        if (tB == null) return -1;
+                        return tB.compareTo(tA);
+                      });
+
+                      if (chatDocs.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline,
+                                size: 60,
+                                color: Colors.grey.shade400,
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                "No messages yet",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey.shade500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      return ListView.builder(
+                        itemCount: chatDocs.length,
+                        itemBuilder: (context, index) {
+                          return ChatListItem(
+                            chatDoc: chatDocs[index],
+                            currentUid: currentUserId!,
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
           ),
         ),
-        bottomNavigationBar: organ_bottomNavbbar(currentScreen: 'Inbox'),
+        bottomNavigationBar:
+            const organ_bottomNavbbar(currentScreen: 'Inbox'),
       ),
     );
   }

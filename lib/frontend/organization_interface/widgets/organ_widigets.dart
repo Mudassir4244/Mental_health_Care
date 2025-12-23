@@ -1,8 +1,11 @@
 // ignore_for_file: dead_code
 
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:mental_healthcare/backend/customer.dart';
+import 'package:mental_healthcare/backend/oraganization.dart';
 import 'package:mental_healthcare/frontend/customer_interface/loginscreen.dart';
 import 'package:mental_healthcare/app_settings_components/settings.dart';
 import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/added_users.dart';
@@ -267,151 +270,274 @@ class Mydrawer extends StatefulWidget {
 }
 
 class _MydrawerState extends State<Mydrawer> {
-  final Authentication auth = Authentication();
+  final OrganAuth auth = OrganAuth();
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  String userName = "Organization";
+  String userEmail = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    final user = _firebaseAuth.currentUser;
+    if (user != null) {
+      final doc = await _firestore.collection('Users').doc(user.uid).get();
+      if (doc.exists) {
+        final data = doc.data()!;
+        if (mounted) {
+          setState(() {
+            userName =
+                data['Organization name'] ?? data['username'] ?? "Organization";
+            userEmail = data['email'] ?? user.email ?? "";
+          });
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Drawer(
         child: Column(
           children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: AppColors.primary),
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Text(
-                  'Mind Assist',
-                  style: TextStyle(
-                    color: AppColors.cardColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
+            // Custom Header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 40, 20, 30),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, AppColors.accent],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: const BorderRadius.only(
+                  bottomRight: Radius.circular(30),
                 ),
               ),
-            ),
-
-            // ✅ The main menu items inside an Expanded ListView
-            Expanded(
-              child: ListView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ListTile(
-                  //   onTap: () {
-                  //     Navigator.push(
-                  //       context,
-                  //       MaterialPageRoute(builder: (_) => InsightsScreen()),
-                  //     );
-                  //   },
-                  //   leading: Icon(Icons.bookmark),
-                  //   title: Text('Insight Screen'),
-                  // ),
-                  // Divider(),
-
-                  // ListTile(
-                  //   onTap: () {
-                  //     Navigator.push(
-                  //       context,
-                  //       MaterialPageRoute(builder: (_) => ActivityScreen()),
-                  //     );
-                  //   },
-                  //   leading: Icon(Icons.local_activity),
-                  //   title: Text('Activity Screen'),
-                  // ),
-
-                  // Divider(),
-                  ListTile(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => AddedUsers()),
-                      );
-                    },
-                    leading: Icon(Icons.person_add),
-                    title: Text('Add User'),
-                    // subtitle: Text(
-                    //   'This button will only visible to Oragnization owner',
-                    // ),
+                  Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.3),
+                    ),
+                    child: CircleAvatar(
+                      radius: 35,
+                      backgroundColor: Colors.white,
+                      child: Text(
+                        userName.isNotEmpty ? userName[0].toUpperCase() : "O",
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
                   ),
-                  Divider(),
-
-                  ListTile(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => PractSettings()),
-                      );
-                    },
-                    leading: Icon(Icons.settings),
-                    title: Text('Settings'),
+                  const SizedBox(height: 15),
+                  Text(
+                    userName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    userEmail,
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                 ],
               ),
             ),
 
-            // ✅ This section stays fixed at the bottom
-            Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ListTile(
-                leading: Icon(Icons.logout, color: Colors.red),
-                title: Text(
-                  'Logout',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold,
+            // Menu Items
+            Expanded(
+              child: Container(
+                color: Colors.grey[50],
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 20,
+                    horizontal: 10,
                   ),
+                  children: [
+                    _buildDrawerItem(
+                      icon: Icons.person_add_alt_1_rounded,
+                      title: 'Add User',
+                      subtitle: 'Manage organization members',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => AddedUsers()),
+                        );
+                      },
+                    ),
+                    _buildDrawerItem(
+                      icon: Icons.settings_rounded,
+                      title: 'Settings',
+                      subtitle: 'App preferences & account',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => PractSettings()),
+                        );
+                      },
+                    ),
+                  ],
                 ),
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text(
-                          'Logout',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        content: const Text(
-                          'Are you Sure you wana Logout?',
-                          style: TextStyle(fontSize: 17),
-                        ),
-                        actions: [
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context); // close dialog
-                            },
-                            child: const Text('No'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              // ignore: avoid_types_as_parameter_names
-                              auth.signout(context).then((Value) {
-                                // Add your logout logic here (e.g., FirebaseAuth.instance.signOut())
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => LoginScreen(),
-                                  ),
-                                ); // close drawer
-                                Get.snackbar(
-                                  "Logout",
-                                  'Logout Successfully ',
-                                  backgroundColor: Colors.white.withOpacity(
-                                    0.7,
-                                  ),
-                                );
-                              });
-                              // Navigator.pop(context);
-                            },
-                            child: const Text('Yes'),
-                          ),
-                        ],
-                      );
+              ),
+            ),
+
+            // Footer / Logout
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Divider(color: Colors.grey[200]),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.logout_rounded,
+                        color: Colors.red,
+                      ),
+                    ),
+                    title: const Text(
+                      'Logout',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    onTap: () {
+                      _showLogoutDialog(context);
                     },
-                  );
-                },
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Version 1.0.0",
+                    style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                  ),
+                ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: AppColors.primary),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: Color(0xff222B45),
+          ),
+        ),
+        subtitle: subtitle != null
+            ? Padding(
+                padding: const EdgeInsets.only(top: 4.0),
+                child: Text(
+                  subtitle,
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+              )
+            : null,
+        trailing: Icon(
+          Icons.arrow_forward_ios_rounded,
+          size: 16,
+          color: Colors.grey[300],
+        ),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text(
+            'Logout',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: () {
+                auth.signOut(context);
+              },
+              child: const Text(
+                'Logout',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

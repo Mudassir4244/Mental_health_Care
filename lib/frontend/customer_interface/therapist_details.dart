@@ -1,210 +1,3 @@
-// import 'package:flutter/material.dart';
-// import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
-
-// class TherapistDetails extends StatefulWidget {
-//   final Map<String, dynamic> data;
-
-//   const TherapistDetails({super.key, required this.data});
-
-//   @override
-//   State<TherapistDetails> createState() => _TherapistDetailsState();
-// }
-
-// class _TherapistDetailsState extends State<TherapistDetails> {
-//   @override
-//   Widget build(BuildContext context) {
-//     final therapist = widget.data;
-
-//     return Scaffold(
-//       backgroundColor: Colors.grey[100],
-//       body: Column(
-//         children: [
-//           // =======================
-//           // TOP GRADIENT HEADER
-//           // =======================
-//           Container(
-//             width: double.infinity,
-//             padding: const EdgeInsets.symmetric(vertical: 40),
-//             decoration: const BoxDecoration(
-//               gradient: LinearGradient(
-//                 colors: [AppColors.primary, AppColors.accent],
-//                 begin: Alignment.topLeft,
-//                 end: Alignment.bottomRight,
-//               ),
-//               borderRadius: BorderRadius.only(
-//                 bottomLeft: Radius.circular(25),
-//                 bottomRight: Radius.circular(25),
-//               ),
-//             ),
-//             child: Column(
-//               mainAxisAlignment: MainAxisAlignment.center,
-//               children: [
-//                 // Profile avatar
-//                 Align(
-//                   alignment: Alignment.topLeft,
-//                   child: Padding(
-//                     padding: const EdgeInsets.only(left: 10, bottom: 10),
-//                     child: GestureDetector(
-//                       onTap: () {
-//                         Navigator.pop(context);
-//                       },
-//                       child: Icon(
-//                         Icons.arrow_back_ios_new,
-//                         color: Colors.white,
-//                         fontWeight: FontWeight.bold,
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//                 CircleAvatar(
-//                   radius: 45,
-//                   backgroundColor: Colors.white,
-//                   child: Icon(Icons.person, size: 50, color: Colors.blue[700]),
-//                 ),
-
-//                 const SizedBox(height: 15),
-
-//                 // Therapist Name
-//                 Text(
-//                   therapist['username'] ?? 'Therapist',
-//                   style: const TextStyle(
-//                     color: Colors.white,
-//                     fontSize: 24,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-
-//                 const SizedBox(height: 5),
-
-//                 // Speciality short tag
-//                 Text(
-//                   therapist['Speciality'] ?? 'Specialist',
-//                   style: const TextStyle(color: Colors.white70, fontSize: 16),
-//                 ),
-//               ],
-//             ),
-//           ),
-
-//           const SizedBox(height: 20),
-
-//           // =======================
-//           // INFORMATION CARDS BELOW
-//           // =======================
-//           Expanded(
-//             child: SingleChildScrollView(
-//               padding: const EdgeInsets.symmetric(horizontal: 20),
-//               child: Column(
-//                 children: [
-//                   detailCard(
-//                     icon: Icons.email,
-//                     label: "Email",
-//                     value: therapist['email'] ?? "Not Available",
-//                   ),
-//                   detailCard(
-//                     icon: Icons.phone,
-//                     label: "Phone",
-//                     value: therapist['Phone Number'] ?? "Not Provided",
-//                   ),
-//                   detailCard(
-//                     icon: Icons.star,
-//                     label: "Speciality",
-//                     value: therapist['Speciality'] ?? "Not Available",
-//                   ),
-//                   SizedBox(height: 30),
-//                   Padding(
-//                     padding: const EdgeInsets.all(30),
-//                     child: GestureDetector(
-//                       onTap: () {},
-//                       child: Container(
-//                         width: double.infinity,
-//                         height: 55,
-//                         decoration: BoxDecoration(
-//                           gradient: LinearGradient(
-//                             colors: [AppColors.primary, AppColors.accent],
-//                             begin: Alignment.topLeft,
-//                             end: Alignment.bottomRight,
-//                           ),
-//                           borderRadius: BorderRadius.circular(30),
-//                         ),
-//                         child: Center(
-//                           child: Text(
-//                             'Send Message',
-//                             style: TextStyle(
-//                               color: Colors.white,
-//                               fontSize: 16,
-//                               fontWeight: FontWeight.bold,
-//                             ),
-//                             textAlign: TextAlign.center,
-//                           ),
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   // =======================
-//   // REUSABLE CARD WIDGET
-//   // =======================
-//   Widget detailCard({
-//     required IconData icon,
-//     required String label,
-//     required String value,
-//   }) {
-//     return Container(
-//       margin: const EdgeInsets.only(bottom: 18),
-//       padding: const EdgeInsets.all(18),
-//       decoration: BoxDecoration(
-//         color: Colors.white,
-//         borderRadius: BorderRadius.circular(18),
-//         boxShadow: [
-//           BoxShadow(
-//             color: Colors.black12,
-//             blurRadius: 8,
-//             spreadRadius: 1,
-//             offset: const Offset(0, 4),
-//           ),
-//         ],
-//       ),
-//       child: Row(
-//         children: [
-//           Container(
-//             padding: const EdgeInsets.all(12),
-//             decoration: BoxDecoration(
-//               color: Colors.blue[50],
-//               borderRadius: BorderRadius.circular(12),
-//             ),
-//             child: Icon(icon, color: Colors.blue),
-//           ),
-//           const SizedBox(width: 15),
-//           Column(
-//             crossAxisAlignment: CrossAxisAlignment.start,
-//             children: [
-//               Text(
-//                 label,
-//                 style: const TextStyle(color: Colors.grey, fontSize: 14),
-//               ),
-//               const SizedBox(height: 5),
-//               Text(
-//                 value,
-//                 style: const TextStyle(
-//                   fontSize: 17,
-//                   fontWeight: FontWeight.bold,
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -223,11 +16,15 @@ class TherapistDetails extends StatefulWidget {
 class _TherapistDetailsState extends State<TherapistDetails> {
   final auth = FirebaseAuth.instance;
   final firestore = FirebaseFirestore.instance;
+  bool _isLoadingChat = false;
 
   /// ===========================================
   /// CREATE OR OPEN CHAT FUNCTION
   /// ===========================================
   Future<void> createOrOpenChat() async {
+    if (_isLoadingChat) return;
+    setState(() => _isLoadingChat = true);
+
     try {
       final therapist = widget.data;
       final currentUser = auth.currentUser!;
@@ -237,20 +34,25 @@ class _TherapistDetailsState extends State<TherapistDetails> {
           ? "${currentUser.uid}_${therapist['uid']}"
           : "${therapist['uid']}_${currentUser.uid}";
 
-      // 🚀 Navigate IMMEDIATELY (No delay)
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ChatScreen(
-            chatId: chatId,
-            senderId: currentUser.uid,
-            senderName: currentUser.displayName ?? "User", // Will update after fetch
-            receiverId: therapist['uid'],
-            receiverName: therapist['username'],
-            receiverRole: "Therapist",
+      // 🔥 Navigate IMMEDIATELY (No delay)
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatScreen(
+              chatId: chatId,
+              senderId: currentUser.uid,
+              senderName:
+                  currentUser.displayName ?? "User", // Will update after fetch
+              receiverId: therapist['uid'],
+              receiverName: therapist['username'],
+              receiverRole: "Therapist",
+            ),
           ),
-        ),
-      );
+        ).then((_) {
+          if (mounted) setState(() => _isLoadingChat = false);
+        });
+      }
 
       // 🔥 Fetch user name in background (no need to block UI)
       final userDoc = await firestore
@@ -267,144 +69,241 @@ class _TherapistDetailsState extends State<TherapistDetails> {
         "receiverId": therapist['uid'],
         "receiverName": therapist['username'],
         "receiverRole": "Therapist",
+        "participants": [
+          currentUser.uid,
+          therapist['uid'],
+        ], // Added participants array
         "timestamp": FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
       print("❌ ERROR in createOrOpenChat: $e");
+      if (mounted) setState(() => _isLoadingChat = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final therapist = widget.data;
+    final String aboutText =
+        therapist['About'] ??
+        therapist['about'] ??
+        therapist['About Me'] ??
+        therapist['bio'] ??
+        "No detailed information available about this practitioner.";
+
+    final String name = therapist['username'] ?? 'Therapist';
+    final String speciality = therapist['Speciality'] ?? 'Specialist';
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      body: Column(
-        children: [
-          // ======================
-          // HEADER (UNCHANGED)
-          // ======================
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 40),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.primary, AppColors.accent],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+      backgroundColor: const Color(0xfff8f9fb),
+      body: CustomScrollView(
+        slivers: [
+          // =======================
+          // SLIVER APP BAR
+          // =======================
+          SliverAppBar(
+            expandedHeight: 280,
+            pinned: true,
+            backgroundColor: AppColors.primary,
+            leading: Container(
+              margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black26,
+                shape: BoxShape.circle,
               ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(25),
-                bottomRight: Radius.circular(25),
+              child: IconButton(
+                icon: const Icon(
+                  Icons.arrow_back_ios_new,
+                  color: Colors.white,
+                  size: 18,
+                ),
+                onPressed: () => Navigator.pop(context),
               ),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 10, bottom: 10),
-                    child: GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: const Icon(
-                        Icons.arrow_back_ios_new,
-                        color: Colors.white,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Gradient Background
+                  Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppColors.primary, AppColors.accent],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
                     ),
                   ),
-                ),
-                CircleAvatar(
-                  radius: 45,
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 50, color: Colors.blue[700]),
-                ),
-                const SizedBox(height: 15),
-                Text(
-                  therapist['username'] ?? 'Therapist',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                  // Profile Content
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 40),
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.white,
+                          child: Text(
+                            name.isNotEmpty ? name[0].toUpperCase() : '?',
+                            style: const TextStyle(
+                              fontSize: 40,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        name,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          speciality,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  therapist['Speciality'] ?? 'Specialist',
-                  style: const TextStyle(color: Colors.white70, fontSize: 16),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
-          const SizedBox(height: 20),
-
-          // =============================
-          // DETAILS + SEND MESSAGE BUTTON
-          // =============================
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+          // =======================
+          // CONTENT BODY
+          // =======================
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  detailCard(
-                    icon: Icons.email,
-                    label: "Email",
-                    value: therapist['email'] ?? "Not Available",
+                  // About Section
+                  _buildSectionTitle("About Me"),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.08),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      aboutText,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey[700],
+                        height: 1.6,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
                   ),
-                  detailCard(
-                    icon: Icons.phone,
-                    label: "Phone",
-                    value: therapist['Phone Number'] ?? "Not Provided",
+
+                  const SizedBox(height: 24),
+
+                  // Contact & Info Section
+                  _buildSectionTitle("Contact & Info"),
+                  const SizedBox(height: 12),
+
+                  _buildInfoTile(
+                    icon: Icons.email_outlined,
+                    title: "Email",
+                    subtitle: therapist['email'] ?? "Not Available",
+                    color: Colors.blue,
                   ),
-                  detailCard(
-                    icon: Icons.star,
-                    label: "Speciality",
-                    value: therapist['Speciality'] ?? "Not Available",
+                  _buildInfoTile(
+                    icon: Icons.phone_outlined,
+                    title: "Phone",
+                    subtitle: therapist['Phone Number'] ?? "Not Provided",
+                    color: Colors.green,
+                  ),
+                  _buildInfoTile(
+                    icon: Icons.workspace_premium_outlined,
+                    title: "Experience",
+                    subtitle: "${therapist['Experience'] ?? 'N/A'} Years",
+                    color: Colors.orange,
+                  ),
+                  _buildInfoTile(
+                    icon: Icons.location_on_outlined,
+                    title: "Location",
+                    subtitle: therapist['Address'] ?? "Online",
+                    color: Colors.redAccent,
                   ),
 
                   const SizedBox(height: 30),
 
-                  // =============================
-                  // SEND MESSAGE BUTTON (UNCHANGED)
-                  // =============================
-                  ElevatedButton(
-                    onPressed: createOrOpenChat,
-
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets
-                          .zero, // important for removing default padding
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      elevation: 3,
-                      backgroundColor:
-                          Colors.transparent, // will be overridden by Ink
-                      shadowColor: Colors.transparent,
-                    ),
-                    child: Ink(
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppColors.primary, AppColors.accent],
-                        ),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Container(
-                        height: 55,
-                        alignment: Alignment.center,
-                        child: const Text(
-                          'Send Message',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                  // Send Message Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: createOrOpenChat,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        elevation: 4,
+                        shadowColor: AppColors.primary.withOpacity(0.4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
+                      child: _isLoadingChat
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                          : const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.chat_bubble_outline, size: 22),
+                                SizedBox(width: 10),
+                                Text(
+                                  'Start Conversation',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
                     ),
                   ),
-
                   const SizedBox(height: 40),
                 ],
               ),
@@ -415,46 +314,71 @@ class _TherapistDetailsState extends State<TherapistDetails> {
     );
   }
 
-  // =======================
-  // REUSABLE CARD
-  // =======================
-  Widget detailCard({
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: Color(0xff222B45),
+      ),
+    );
+  }
+
+  Widget _buildInfoTile({
     required IconData icon,
-    required String label,
-    required String value,
+    required String title,
+    required String subtitle,
+    required Color color,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 18),
-      padding: const EdgeInsets.all(18),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            spreadRadius: 1,
-            offset: const Offset(0, 4),
+            color: Colors.grey.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Row(
         children: [
-          Icon(icon, color: Colors.blue),
-          const SizedBox(width: 20),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: const TextStyle(color: Colors.grey)),
-              const SizedBox(height: 5),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[500],
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xff222B45),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
