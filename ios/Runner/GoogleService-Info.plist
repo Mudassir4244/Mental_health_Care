@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>641995843071-is2h1hqqpsggd39ht0d7jbdj2t5kvjd6.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.641995843071-is2h1hqqpsggd39ht0d7jbdj2t5kvjd6</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCiE5it8w3rSg6GdWfWFQP7dzFO7-G0E5M</string>
+	<key>GCM_SENDER_ID</key>
+	<string>641995843071</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.mentalHealthcare</string>
+	<key>PROJECT_ID</key>
+	<string>mental-health-care-82015</string>
+	<key>STORAGE_BUCKET</key>
+	<string>mental-health-care-82015.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:641995843071:ios:833a35894e4789e0c9b3ca</string>
+	<key>DATABASE_URL</key>
+	<string>https://mental-health-care-82015-default-rtdb.firebaseio.com</string>
+</dict>
+</plist>

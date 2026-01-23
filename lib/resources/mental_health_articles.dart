@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
+import 'package:mental_healthcare/l10n/app_localizations.dart';
 
 class MentalHealthArticles extends StatefulWidget {
   const MentalHealthArticles({super.key});
@@ -55,10 +56,8 @@ class _MentalHealthArticlesState extends State<MentalHealthArticles> {
         throw Exception("API Error");
       }
     } catch (e) {
-      setState(() {
-        hasError = true;
-        isLoading = false;
-      });
+      hasError = true;
+      isLoading = false;
     }
   }
 
@@ -87,8 +86,8 @@ class _MentalHealthArticlesState extends State<MentalHealthArticles> {
           ),
         ),
         elevation: 0,
-        title: const Text(
-          "Mental Health Articles",
+        title: Text(
+          AppLocalizations.of(context)!.mental_health_articles,
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         centerTitle: true,

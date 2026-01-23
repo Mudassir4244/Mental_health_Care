@@ -261,11 +261,11 @@ class _CreateOrganizationScreenState extends State<CreateOrganizationScreen> {
         password: passwordController.text,
         context: context,
         payment_status: 'Pending',
-        role: 'Organization Owner',
+        role: 'Organization Owner', 
       );
 
       if (createdUser == null) throw "Failed to create organization";
-      await stripe.makePayment(30, 'USD');
+      await stripe.makePayment(75, 'USD');
       await auth.updatePaymentStatus(createdUser.uid);
 
       if (mounted) {

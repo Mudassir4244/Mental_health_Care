@@ -317,6 +317,7 @@ class _PracHomescreenState extends State<PracHomescreen>
 
                           final user = filteredClients[index];
                           final String name = user['username'] ?? "Unknown";
+
                           final String uid =
                               user['uid'] ??
                               user['docId']; // Ensure we have the ID
@@ -404,37 +405,38 @@ class _PracHomescreenState extends State<PracHomescreen>
                                                   children: [
                                                     Hero(
                                                       tag: 'avatar_$uid',
-                                                      child: Container(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              2,
-                                                            ),
-                                                        decoration: BoxDecoration(
-                                                          shape:
-                                                              BoxShape.circle,
-                                                          border: Border.all(
-                                                            color: AppColors
-                                                                .primary
+                                                      child: CircleAvatar(
+                                                        radius: 22,
+                                                        backgroundColor:
+                                                            AppColors.primary
                                                                 .withOpacity(
-                                                                  0.2,
+                                                                  0.1,
                                                                 ),
-                                                            width: 2,
-                                                          ),
-                                                        ),
-                                                        child: CircleAvatar(
-                                                          radius: 22,
-                                                          backgroundColor:
-                                                              AppColors.primary
-                                                                  .withOpacity(
-                                                                    0.1,
-                                                                  ),
-                                                          child: Text(
-                                                            name.isNotEmpty
-                                                                ? name[0]
-                                                                      .toUpperCase()
-                                                                : '?',
-                                                            style:
-                                                                const TextStyle(
+                                                        child:
+                                                            user['ImageUrl'] !=
+                                                                    null &&
+                                                                (user['ImageUrl']
+                                                                        as String)
+                                                                    .isNotEmpty
+                                                            ? ClipRRect(
+                                                                borderRadius:
+                                                                    BorderRadius.circular(
+                                                                      50,
+                                                                    ),
+                                                                child: Image.network(
+                                                                  user['ImageUrl'],
+                                                                  width: 50,
+                                                                  height: 50,
+                                                                  fit: BoxFit
+                                                                      .cover,
+                                                                ),
+                                                              )
+                                                            : Text(
+                                                                name.isNotEmpty
+                                                                    ? name[0]
+                                                                          .toUpperCase()
+                                                                    : '?',
+                                                                style: const TextStyle(
                                                                   fontSize: 18,
                                                                   color: AppColors
                                                                       .primary,
@@ -442,43 +444,51 @@ class _PracHomescreenState extends State<PracHomescreen>
                                                                       FontWeight
                                                                           .bold,
                                                                 ),
+                                                              ),
+                                                      ),
+                                                    ),
+                                                    const Spacer(),
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                            bottom: 40,
+                                                          ),
+                                                      child: Container(
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              6,
+                                                            ),
+                                                        decoration: BoxDecoration(
+                                                          color: isMessaged
+                                                              ? Colors.green
+                                                                    .withOpacity(
+                                                                      0.1,
+                                                                    )
+                                                              : Colors.orange
+                                                                    .withOpacity(
+                                                                      0.1,
+                                                                    ),
+                                                          shape:
+                                                              BoxShape.circle,
+                                                        ),
+                                                        child: Center(
+                                                          child: Icon(
+                                                            isMessaged
+                                                                ? Icons
+                                                                      .chat_bubble_outline
+                                                                : Icons
+                                                                      .mark_email_unread_outlined,
+                                                            size: 16,
+                                                            color: isMessaged
+                                                                ? Colors.green
+                                                                : Colors.orange,
                                                           ),
                                                         ),
                                                       ),
                                                     ),
-                                                    const Spacer(),
-                                                    Container(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            6,
-                                                          ),
-                                                      decoration: BoxDecoration(
-                                                        color: isMessaged
-                                                            ? Colors.green
-                                                                  .withOpacity(
-                                                                    0.1,
-                                                                  )
-                                                            : Colors.orange
-                                                                  .withOpacity(
-                                                                    0.1,
-                                                                  ),
-                                                        shape: BoxShape.circle,
-                                                      ),
-                                                      child: Icon(
-                                                        isMessaged
-                                                            ? Icons
-                                                                  .chat_bubble_outline
-                                                            : Icons
-                                                                  .mark_email_unread_outlined,
-                                                        size: 16,
-                                                        color: isMessaged
-                                                            ? Colors.green
-                                                            : Colors.orange,
-                                                      ),
-                                                    ),
                                                   ],
                                                 ),
-                                                const Spacer(),
+                                                // const Spacer(),
                                                 // Name
                                                 Text(
                                                   name,
@@ -491,7 +501,7 @@ class _PracHomescreenState extends State<PracHomescreen>
                                                     color: Color(0xff222B45),
                                                   ),
                                                 ),
-                                                const SizedBox(height: 4),
+                                                // const SizedBox(height: 4),
                                                 // Status Text
                                                 Text(
                                                   isMessaged
@@ -505,13 +515,13 @@ class _PracHomescreenState extends State<PracHomescreen>
                                                         : Colors.orange,
                                                   ),
                                                 ),
-                                                const SizedBox(height: 12),
+                                                const SizedBox(height: 5),
                                                 // Action Button
                                                 Container(
                                                   width: double.infinity,
                                                   padding:
                                                       const EdgeInsets.symmetric(
-                                                        vertical: 8,
+                                                        vertical: 5,
                                                       ),
                                                   decoration: BoxDecoration(
                                                     color: AppColors.primary

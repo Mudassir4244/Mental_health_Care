@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mental_healthcare/backend/practionar.dart';
+import 'package:mental_healthcare/cloudinary/cloudinary_service.dart';
 import 'package:mental_healthcare/frontend/customer_interface/choice_screen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/loginscreen.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
@@ -418,6 +419,10 @@ class _PractitionerRegistrationScreenState
     User? createdUser;
     final Now = DateTime.now();
     final expirydate = Now.add(Duration(days: 30));
+
+    final imageurl = _profileImage == null
+        ? ""
+        : await CloudinaryService().uploadImage(_profileImage!);
     try {
       // Removed isEmailAvailable check to avoid permission errors blocking registration.
       // Uniqueness is enforced by FirebaseAuth's createUserWithEmailAndPassword.
@@ -433,6 +438,7 @@ class _PractitionerRegistrationScreenState
         context: context,
         subs_start_Date: Timestamp.now().toString(),
         subs_end_Date: expirydate.timeZoneName,
+        ImageUrl: imageurl,
       );
 
       if (createdUser == null) throw "Failed to create practitioner";

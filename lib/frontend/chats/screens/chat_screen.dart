@@ -322,6 +322,7 @@ class ChatScreen extends StatefulWidget {
   final String receiverId;
   final String receiverName;
   final String receiverRole;
+  final String recieverimageurl;
 
   const ChatScreen({
     super.key,
@@ -331,6 +332,7 @@ class ChatScreen extends StatefulWidget {
     required this.receiverId,
     required this.receiverName,
     required this.receiverRole,
+    required this.recieverimageurl,
   });
 
   @override
@@ -388,6 +390,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     List<Map<String, dynamic>> practitioners = [];
+    final Map<String, dynamic> clientData;
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -403,10 +406,29 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             const SizedBox(width: 15),
             CircleAvatar(
-              backgroundColor: Colors.white,
               radius: 20,
-              child: const Icon(Icons.person),
+              backgroundColor: Colors.grey.shade300,
+
+              backgroundImage:
+                  widget.recieverimageurl.isNotEmpty
+                  ? NetworkImage(widget.recieverimageurl)
+                  : null,
+
+              child:
+                  widget.recieverimageurl.isEmpty
+                  ? (widget.receiverName.isNotEmpty
+                        ? Text(
+                            widget.receiverName[0].toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          )
+                        : const Icon(Icons.person))
+                  : null,
             ),
+
             const SizedBox(width: 5),
             GestureDetector(
               onTap: () async {

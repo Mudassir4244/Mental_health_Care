@@ -27,6 +27,7 @@ class Authentication {
     required String username,
     required String email,
     required String password,
+    required String ImageUrl,
     required BuildContext context,
   }) async {
     try {
@@ -53,8 +54,10 @@ class Authentication {
           'username': username,
           'role': 'customer',
           'createdAt': FieldValue.serverTimestamp(),
+          'Preferred Payment Method': 'Not Selected',
           'Subscription Start Date': 'Not Yet',
           'Subscription End Date': 'No Yet',
+          'ImageUrl': ImageUrl,
         });
 
         ErrorHandler.showSuccessSnackBar(
@@ -210,8 +213,10 @@ class Authentication {
 
       // ✅ Update Firestore user document
       await _firestore.collection('Users').doc(user.uid).update({
-        if (updatedData['username'] != null)
-          'username': updatedData['username'],
+        if (updatedData['ImageUrl'] != null)
+          'ImageUrl': updatedData['ImageUrl'],
+        if (updatedData['username']) 'username': updatedData['username'],
+
         if (updatedData['email'] != null) 'email': updatedData['email'],
         if (updatedData['role'] != null) 'role': updatedData['role'],
       });
@@ -226,7 +231,7 @@ class Authentication {
       ErrorHandler.showSuccessSnackBar(context, "Profile updated successfully");
     } catch (e) {
       debugPrint("Error updating profile: $e");
-      _showError(context, "Failed to update profile: $e");
+      // _showError(context, "Failed to update profile: $e");
     }
   }
 

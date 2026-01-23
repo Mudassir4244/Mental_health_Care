@@ -351,7 +351,7 @@ class _EmployeeDetailscreenState extends State<EmployeeDetailscreen> {
             senderName: currentUser.displayName ?? "User",
             receiverId: employeeData['uid'],
             receiverName: employeeData['username'] ?? "Employee",
-            receiverRole: employeeData['role'] ?? "Employee",
+            receiverRole: employeeData['role'] ?? "Employee", recieverimageurl: employeeData['ImageUrl'],
           ),
         ),
       );

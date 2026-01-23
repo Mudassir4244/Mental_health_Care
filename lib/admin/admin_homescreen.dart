@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mental_healthcare/admin/admin_dashboard.dart';
 import 'package:mental_healthcare/admin/admin_settings.dart';
 import 'package:mental_healthcare/admin/reported_problems.dart';
@@ -176,7 +178,7 @@ class MobileAdminHomeResponsive extends StatefulWidget {
 
 class _MobileAdminHomeResponsiveState extends State<MobileAdminHomeResponsive> {
   int selectedIndex = 0;
-
+  DateTime? lastPressed;
   final List<Map<String, dynamic>> menuItems = [
     {"title": "Dashboard", "icon": Icons.dashboard},
     {"title": "Upload Content", "icon": Icons.upload_file},
@@ -187,62 +189,85 @@ class _MobileAdminHomeResponsiveState extends State<MobileAdminHomeResponsive> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: Drawer(
-        backgroundColor: Colors.blueGrey[900],
-        child: Column(
-          children: [
-            const DrawerHeader(
-              child: Center(
-                child: Text(
-                  "Mind Assist Admin",
-                  style: TextStyle(color: Colors.white, fontSize: 20),
+    return WillPopScope(
+      onWillPop: () async {
+        final now = DateTime.now();
+
+        if (lastPressed == null ||
+            now.difference(lastPressed!) > const Duration(seconds: 2)) {
+          // If pressed for the first time OR after 2 seconds
+          lastPressed = now;
+          Fluttertoast.showToast(msg: "Press again to exit ");
+          return false; // Prevent exiting
+        }
+        // If pressed again within 2 seconds
+        SystemNavigator.pop();
+        return false; // Exit app
+      },
+      child: Scaffold(
+        drawer: Drawer(
+          backgroundColor: Colors.blueGrey[900],
+          child: Column(
+            children: [
+              const DrawerHeader(
+                child: Center(
+                  child: Text(
+                    "Mind Assist Admin",
+                    style: TextStyle(color: Colors.white, fontSize: 20),
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: menuItems.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: Icon(
-                      menuItems[index]["icon"],
-                      color: Colors.white,
-                    ),
-                    title: Text(
-                      menuItems[index]["title"],
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    onTap: () {
-                      setState(() => selectedIndex = index);
-                      Navigator.pop(context); // close drawer
-                    },
-                  );
-                },
+              Expanded(
+                child: ListView.builder(
+                  itemCount: menuItems.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      leading: Icon(
+                        menuItems[index]["icon"],
+                        color: Colors.white,
+                      ),
+                      title: Text(
+                        menuItems[index]["title"],
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      onTap: () {
+                        setState(() => selectedIndex = index);
+                        Navigator.pop(context); // close drawer
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
+            ],
+          ),
+        ),
+
+        // ----------------- MOBILE HEADER WITH HAMBURGER -----------------
+        appBar: AppBar(
+          centerTitle: true,
+          // leading: IconButton(
+          //   onPressed: () {
+          //     Navigator.pop(context);
+          //   },
+          //   icon: Icon(Icons.arrow_back_ios),
+          // ),
+          title: const Text("Admin Panel"),
+          backgroundColor: Colors.white,
+          elevation: 1,
+          foregroundColor: Colors.black,
+        ),
+
+        // ----------------- MOBILE CONTENT AREA -----------------
+        body: IndexedStack(
+          index: selectedIndex,
+          children: [
+            const DesktopDashboard(), // Reusing the responsive dashboard grid
+            const AdminUploadPanel(),
+            const AdminSupportPanel(),
+            const AdminSettingsScreen(),
+            const Center(child: Text("Logout")),
           ],
         ),
-      ),
-
-      // ----------------- MOBILE HEADER WITH HAMBURGER -----------------
-      appBar: AppBar(
-        title: const Text("Admin Panel"),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        foregroundColor: Colors.black,
-      ),
-
-      // ----------------- MOBILE CONTENT AREA -----------------
-      body: IndexedStack(
-        index: selectedIndex,
-        children: [
-          const DesktopDashboard(), // Reusing the responsive dashboard grid
-          const AdminUploadPanel(),
-          const ReportsScreen(),
-          const AdminSettingsScreen(),
-          const Center(child: Text("Logout")),
-        ],
       ),
     );
   }
@@ -287,12 +312,6 @@ class UsersScreen extends StatelessWidget {
   const UsersScreen({super.key});
   @override
   Widget build(BuildContext context) => const TotalSummary();
-}
-
-class ReportsScreen extends StatelessWidget {
-  const ReportsScreen({super.key});
-  @override
-  Widget build(BuildContext context) => const Center(child: Text("Reports"));
 }
 
 class SettingsScreen extends StatelessWidget {

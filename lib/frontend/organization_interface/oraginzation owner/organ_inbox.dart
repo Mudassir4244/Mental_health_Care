@@ -163,6 +163,7 @@ class _OrganationInboxState extends State<OrganationInbox>
                       return ListView.builder(
                         itemCount: chatDocs.length,
                         itemBuilder: (context, index) {
+                          // return InboxScreen();
                           return ChatListItem(
                             chatDoc: chatDocs[index],
                             currentUid: currentUserId!,
@@ -176,8 +177,7 @@ class _OrganationInboxState extends State<OrganationInbox>
             ),
           ),
         ),
-        bottomNavigationBar:
-            const organ_bottomNavbbar(currentScreen: 'Inbox'),
+        bottomNavigationBar: const organ_bottomNavbbar(currentScreen: 'Inbox'),
       ),
     );
   }

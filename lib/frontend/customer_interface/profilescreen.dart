@@ -1,8 +1,12 @@
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: deprecated_member_use, sort_child_properties_last
 
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mental_healthcare/cloudinary/cloudinary_service.dart';
+import 'package:mental_healthcare/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:mental_healthcare/backend/customer.dart';
 import 'package:mental_healthcare/frontend/customer_interface/finding_therapist.dart';
@@ -29,16 +33,60 @@ class ProfileProvider extends ChangeNotifier {
   String get paymentStatus => _paymentStatus;
   bool get isPremium => _isPremium;
   // bool isPremium = false;
-  bool isLoading = true;
+  String _selectedPaymentMethod = 'both'; // Default
+
+  String get selectedPaymentMethod => _selectedPaymentMethod;
+
+  // Load payment method from Firestore when user logs in
+  Future<void> loadPaymentMethod() async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) return;
+
+      final doc = await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(uid)
+          .get();
+
+      if (doc.exists && doc.data()?['Preferred Payment Method'] != null) {
+        _selectedPaymentMethod = doc.data()!['Preferred Payment Method'];
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Error loading payment method: $e');
+    }
+  }
+
+  // Update payment method and save to Firestore
+  Future<void> updatePaymentMethod(String method) async {
+    try {
+      _selectedPaymentMethod = method;
+      notifyListeners();
+
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) return;
+
+      // Update in Firestore
+      await FirebaseFirestore.instance.collection('Users').doc(uid).update({
+        'Preferred Payment Method': method,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      print('✅ Payment method updated to: $method');
+    } catch (e) {
+      print('❌ Error updating payment method: $e');
+      // Optionally show a snackbar to the user
+    }
+  }
 
   Future<void> loadProfile() async {
-    isLoading = true;
+    _loading = true;
     notifyListeners();
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       _isPremium = false;
-      isLoading = false;
+      _loading = false;
       notifyListeners();
       return;
     }
@@ -63,7 +111,7 @@ class ProfileProvider extends ChangeNotifier {
       _isPremium = false;
     }
 
-    isLoading = false;
+    _loading = false;
     notifyListeners();
   }
 
@@ -154,15 +202,49 @@ class ProfileProvider extends ChangeNotifier {
   }
 }
 
-// ─────────────────────────────────────────────
-// MAIN PROFILE SCREEN
-// ─────────────────────────────────────────────
-class Profilescreen extends StatelessWidget {
-  final String title = 'Profile';
+// Fixed version of Profilescreen - convert to StatefulWidget
+
+class Profilescreen extends StatefulWidget {
   const Profilescreen({super.key});
 
   @override
+  State<Profilescreen> createState() => _ProfilescreenState();
+}
+
+class _ProfilescreenState extends State<Profilescreen> {
+  final String title = 'Profile';
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeProfile();
+  }
+
+  Future<void> _initializeProfile() async {
+    if (_isInitialized) return;
+
+    try {
+      final provider = Provider.of<ProfileProvider>(context, listen: false);
+      await provider.loadPaymentMethod();
+      await provider.fetchProfile(context);
+      setState(() {
+        _isInitialized = true;
+      });
+    } catch (e) {
+      print('Error initializing profile: $e');
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          "Failed to load profile. Please try again.",
+        );
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     if (FirebaseAuth.instance.currentUser == null) {
       return WillPopScope(
         onWillPop: () async {
@@ -182,17 +264,17 @@ class Profilescreen extends StatelessWidget {
                 children: [
                   Icon(Icons.lock_outline, size: 80, color: AppColors.primary),
                   const SizedBox(height: 24),
-                  const Text(
-                    "Profile Locked",
-                    style: TextStyle(
+                  Text(
+                    loc.profileLocked,
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textColorPrimary,
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Text(
-                    "You must login to view and edit your profile.",
+                  Text(
+                    loc.loginRequiredMessage,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
@@ -218,8 +300,8 @@ class Profilescreen extends StatelessWidget {
                           ),
                         );
                       },
-                      child: const Text(
-                        "Login Now",
+                      child: Text(
+                        loc.login,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -232,16 +314,9 @@ class Profilescreen extends StatelessWidget {
               ),
             ),
           ),
-          bottomNavigationBar: BottomNavBar(currentScreen: title),
         ),
       );
     }
-
-    final provider = Provider.of<ProfileProvider>(context, listen: true);
-    // fetch profile only once when screen builds first time
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      provider.fetchProfile(context);
-    });
 
     return WillPopScope(
       onWillPop: () async {
@@ -253,103 +328,75 @@ class Profilescreen extends StatelessWidget {
       },
       child: Scaffold(
         backgroundColor: AppColors.background,
-        body: Stack(
-          children: [
-            SafeArea(
-              bottom: false,
-              child: Consumer<ProfileProvider>(
-                builder: (context, provider, _) {
-                  if (provider.loading && provider.profile == null) {
-                    return const Center(
-                      child: CircularProgressIndicator(color: AppColors.accent),
-                    );
-                  }
+        bottomNavigationBar: BottomNavBar(currentScreen: title),
+        body: SafeArea(
+          bottom: false,
+          child: Consumer<ProfileProvider>(
+            builder: (context, provider, _) {
+              if (!_isInitialized ||
+                  (provider.loading && provider.profile == null)) {
+                return const Center(
+                  child: CircularProgressIndicator(color: AppColors.accent),
+                );
+              }
 
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const ProfileAppBar(),
-                      Expanded(
-                        child: RefreshIndicator(
-                          onRefresh: () => provider.refreshProfile(context),
-                          child: SingleChildScrollView(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0,
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const ProfileAppBar(),
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: () => provider.refreshProfile(context),
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const ProfileCard(),
+                            const SizedBox(height: 24),
+                            SectionTitle(title: loc.preferences),
+                            PreferencesCard(),
+                            SectionTitle(title: loc.userId),
+                            Text(
+                              FirebaseAuth.instance.currentUser!.uid,
+                              style: const TextStyle(
+                                color: AppColors.textColorSecondary,
+                                fontSize: 14,
+                              ),
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const ProfileCard(),
-                                const SizedBox(height: 24),
-                                const SectionTitle(title: 'Preferences'),
-                                const PreferencesCard(),
-                                const SectionTitle(title: 'User ID'),
-                                Text(
-                                  FirebaseAuth.instance.currentUser!.uid
-                                      .toString(),
-                                  style: const TextStyle(
-                                    color: AppColors.textColorSecondary,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
-                                const SectionTitle(title: 'Subscriptions'),
-                                const SubscriptionCard(),
-                                const SizedBox(height: 40),
-                              ],
-                            ),
-                          ),
+                            const SizedBox(height: 24),
+                            SectionTitle(title: loc.subscriptions),
+                            const SubscriptionCard(),
+                            const SizedBox(height: 40),
+                          ],
                         ),
                       ),
-                    ],
-                  );
-                },
-              ),
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: BottomNavBar(currentScreen: title),
-            ),
-          ],
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────
-// TOP APP BAR
-// ─────────────────────────────────────────────
-class ProfileAppBar extends StatelessWidget {
-  const ProfileAppBar({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 16.0, top: 10.0, bottom: 8.0),
-      child: IconButton(
-        icon: const Icon(
-          Icons.arrow_back_ios,
-          color: AppColors.textColorPrimary,
-          size: 24,
-        ),
-        onPressed: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-          );
-        },
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────
-// PROFILE CARD
-// ─────────────────────────────────────────────
+// Fixed ProfileCard with correct image handling
 class ProfileCard extends StatelessWidget {
   const ProfileCard({super.key});
+
+  Future<File?> _pickImage() async {
+    final pickedFile = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+    );
+    if (pickedFile != null) {
+      return File(pickedFile.path);
+    }
+    return null;
+  }
 
   void _editProfileDialog(BuildContext context, Map<String, dynamic> data) {
     final provider = Provider.of<ProfileProvider>(context, listen: false);
@@ -358,62 +405,166 @@ class ProfileCard extends StatelessWidget {
 
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: AppColors.cardColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          title: const Text(
-            "Edit Profile",
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: "Username",
-                    prefixIcon: Icon(Icons.person_outline),
-                  ),
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: AppColors.cardColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              title: Text(
+                AppLocalizations.of(context)!.editProfile,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.grey.shade200,
+                          backgroundImage:
+                              (data['ImageUrl'] != null &&
+                                  data['ImageUrl'].toString().isNotEmpty)
+                              ? NetworkImage(data['ImageUrl']) as ImageProvider
+                              : null,
+                          key: ValueKey(data['ImageUrl']),
+                          child:
+                              (data['ImageUrl'] == null ||
+                                  data['ImageUrl'].toString().isEmpty)
+                              ? const Icon(
+                                  Icons.person,
+                                  size: 40,
+                                  color: AppColors.primary,
+                                )
+                              : null,
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: () async {
+                              try {
+                                final imageFile = await _pickImage();
+                                if (imageFile == null) return;
+
+                                final imageUrl = await CloudinaryService()
+                                    .uploadImage(imageFile);
+
+                                if (imageUrl.isNotEmpty) {
+                                  if (data['ImageUrl'] != null) {
+                                    imageCache.evict(
+                                      NetworkImage(data['ImageUrl']),
+                                    );
+                                  }
+
+                                  await provider.updateProfile(context, {
+                                    'ImageUrl': imageUrl,
+                                  });
+
+                                  setState(() {
+                                    data['ImageUrl'] = imageUrl;
+                                  });
+
+                                  if (context.mounted) {
+                                    ErrorHandler.showSuccessSnackBar(
+                                      context,
+                                      "✅ Image updated successfully",
+                                    );
+                                  }
+                                }
+                              } catch (e) {
+                                print('Error updating image: $e');
+                                if (context.mounted) {
+                                  ErrorHandler.showErrorSnackBar(
+                                    context,
+                                    "Failed to update image",
+                                  );
+                                }
+                              }
+                            },
+                            child: Container(
+                              width: 35,
+                              height: 35,
+                              decoration: const BoxDecoration(
+                                color: Colors.black,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.edit_outlined,
+                                color: AppColors.background,
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: nameController,
+                      decoration: const InputDecoration(
+                        labelText: "Username",
+                        prefixIcon: Icon(Icons.person_outline),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: emailController,
+                      decoration: const InputDecoration(
+                        labelText: "Email",
+                        prefixIcon: Icon(Icons.email_outlined),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: emailController,
-                  decoration: const InputDecoration(
-                    labelText: "Email",
-                    prefixIcon: Icon(Icons.email_outlined),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: Colors.white,
                   ),
+                  onPressed: () async {
+                    try {
+                      await FirebaseFirestore.instance
+                          .collection('Users')
+                          .doc(FirebaseAuth.instance.currentUser!.uid)
+                          .update({
+                            'ImageUrl': data['ImageUrl'],
+                            'username': nameController.text.trim(),
+                            'email': emailController.text.trim(),
+                            'updatedAt': FieldValue.serverTimestamp(),
+                          });
+
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        ErrorHandler.showSuccessSnackBar(
+                          context,
+                          AppLocalizations.of(context)!.profileUpdated,
+                        );
+                      }
+                    } catch (e) {
+                      print('Error updating profile: $e');
+                      if (context.mounted) {
+                        ErrorHandler.showErrorSnackBar(
+                          context,
+                          AppLocalizations.of(context)!.profileUpdateFailed,
+                        );
+                      }
+                    }
+                  },
+                  child: const Text("Save"),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accent,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () async {
-                final updatedData = {
-                  'username': nameController.text.trim(),
-                  'email': emailController.text.trim(),
-                };
-                await provider.updateProfile(context, updatedData);
-                Navigator.pop(context);
-                ErrorHandler.showSuccessSnackBar(
-                  context,
-                  "✅ Profile updated successfully",
-                );
-              },
-              child: const Text("Save"),
-            ),
-          ],
+            );
+          },
         );
       },
     );
@@ -423,9 +574,9 @@ class ProfileCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = Provider.of<ProfileProvider>(context);
     final data = provider.profile;
-
+    final loc = AppLocalizations.of(context)!;
     if (data == null) {
-      return const Center(child: Text("No record found."));
+      return Center(child: Text(loc.noRecordFound));
     }
 
     return Container(
@@ -436,7 +587,6 @@ class ProfileCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
@@ -448,23 +598,46 @@ class ProfileCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const CircleAvatar(
-            radius: 30,
+          CircleAvatar(
+            radius: 50,
             backgroundColor: Colors.white,
-            child: Icon(Icons.person, size: 40, color: AppColors.primary),
+            backgroundImage:
+                (data['ImageUrl'] != null &&
+                    data['ImageUrl'].toString().isNotEmpty)
+                ? NetworkImage(data['ImageUrl']) as ImageProvider
+                : null,
+            child:
+                (data['ImageUrl'] == null ||
+                    data['ImageUrl'].toString().isEmpty)
+                ? const Icon(Icons.person, size: 40, color: AppColors.primary)
+                : null,
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '${data['username']}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      '${data['username']}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    provider.isPremium
+                        ? Padding(
+                            padding: const EdgeInsets.only(left: 6.0),
+                            child: Icon(
+                              Icons.verified,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          )
+                        : SizedBox(),
+                  ],
                 ),
                 Text(
                   '${data['email']}',
@@ -489,6 +662,33 @@ class ProfileCard extends StatelessWidget {
             onPressed: () => _editProfileDialog(context, data),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// // ─────────────────────────────────────────────
+// // TOP APP BAR
+// // ─────────────────────────────────────────────
+class ProfileAppBar extends StatelessWidget {
+  const ProfileAppBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16.0, top: 10.0, bottom: 8.0),
+      child: IconButton(
+        icon: const Icon(
+          Icons.arrow_back_ios,
+          color: AppColors.textColorPrimary,
+          size: 24,
+        ),
+        onPressed: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
+        },
       ),
     );
   }
@@ -525,15 +725,16 @@ class PreferencesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Card(
       color: AppColors.cardColor,
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Column(
         children: [
-          _buildItem(Icons.language_outlined, 'Language', trailing: 'English'),
-          _buildItem(Icons.help_outline, 'Help & Support'),
-          _buildItem(Icons.favorite_border, 'About App', isLast: true),
+          _buildItem(Icons.language_outlined, loc.language),
+          _buildItem(Icons.help_outline, loc.helpSupport),
+          _buildItem(Icons.favorite_border, loc.aboutApp, isLast: true),
         ],
       ),
     );
@@ -572,9 +773,9 @@ class PreferencesCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────
-// SUBSCRIPTION CARD (with provider)
-// ─────────────────────────────────────────────
+// // ─────────────────────────────────────────────
+// // SUBSCRIPTION CARD (with provider)
+// // ─────────────────────────────────────────────
 class SubscriptionCard extends StatelessWidget {
   const SubscriptionCard({super.key});
 
@@ -602,8 +803,8 @@ class SubscriptionCard extends StatelessWidget {
                       children: [
                         Icon(Icons.star_outline, color: AppColors.primary),
                         const SizedBox(width: 8),
-                        const Text(
-                          'Current Tier',
+                        Text(
+                          AppLocalizations.of(context)!.currentTier,
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
@@ -623,6 +824,7 @@ class SubscriptionCard extends StatelessWidget {
                     ),
                   ],
                 ),
+
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: provider.isPremium
@@ -664,6 +866,174 @@ class SubscriptionCard extends StatelessWidget {
             ),
           ),
         ),
+        SizedBox(height: 20),
+        provider.isPremium
+            ? Card(
+                color: AppColors.cardColor,
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final bool isSmallScreen = constraints.maxWidth < 400;
+
+                      Widget paymentOption({
+                        required String value,
+                        required String label,
+                        required IconData icon,
+                        required Color activeColor,
+                      }) {
+                        final bool isSelected =
+                            provider.selectedPaymentMethod == value;
+
+                        return GestureDetector(
+                          onTap: () => provider.updatePaymentMethod(value),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? activeColor.withOpacity(0.15)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: isSelected
+                                    ? activeColor
+                                    : AppColors.textColorSecondary.withOpacity(
+                                        0.3,
+                                      ),
+                                width: 2,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  icon,
+                                  color: isSelected
+                                      ? activeColor
+                                      : AppColors.textColorSecondary,
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    label,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                      color: isSelected
+                                          ? activeColor
+                                          : AppColors.textColorSecondary,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                AnimatedScale(
+                                  scale: isSelected ? 1.0 : 0.0,
+                                  duration: const Duration(milliseconds: 300),
+                                  child: Icon(
+                                    Icons.check_circle,
+                                    color: activeColor,
+                                    size: 20,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.payment_outlined,
+                                color: AppColors.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.preferredPaymentMethod,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          /// Cash & Insurance
+                          isSmallScreen
+                              ? Column(
+                                  children: [
+                                    paymentOption(
+                                      value: 'Cash',
+                                      label: 'Cash',
+                                      icon: Icons.attach_money,
+                                      activeColor: AppColors.primary,
+                                    ),
+                                    const SizedBox(height: 10),
+                                    paymentOption(
+                                      value: 'Insurance',
+                                      label: 'Insurance',
+                                      icon: Icons.shield_outlined,
+                                      activeColor: AppColors.accent,
+                                    ),
+                                  ],
+                                )
+                              : Row(
+                                  children: [
+                                    Expanded(
+                                      child: paymentOption(
+                                        value: 'Cash',
+                                        label: 'Cash',
+                                        icon: Icons.attach_money,
+                                        activeColor: AppColors.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: paymentOption(
+                                        value: 'Insurance',
+                                        label: 'Insurance',
+                                        icon: Icons.shield_outlined,
+                                        activeColor: AppColors.accent,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                          const SizedBox(height: 12),
+
+                          /// Both option
+                          SizedBox(
+                            width: double.infinity,
+                            child: paymentOption(
+                              value: 'Both',
+                              label: 'Both',
+                              icon: Icons.shield_outlined,
+                              activeColor: AppColors.success,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              )
+            : SizedBox(),
         const SizedBox(height: 20),
         GestureDetector(
           onTap: provider.isPremium
@@ -688,8 +1058,8 @@ class SubscriptionCard extends StatelessWidget {
                 : Center(
                     child: Text(
                       provider.isPremium
-                          ? 'Find Practitioner'
-                          : 'Upgrade to Premium 9.99 USD',
+                          ? AppLocalizations.of(context)!.findPractitioner
+                          : AppLocalizations.of(context)!.upgradePremium,
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -699,6 +1069,7 @@ class SubscriptionCard extends StatelessWidget {
                   ),
           ),
         ),
+        // SizedBox(height: 20),
       ],
     );
   }

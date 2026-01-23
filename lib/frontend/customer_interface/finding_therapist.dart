@@ -296,22 +296,33 @@ class PractitionerCard extends StatelessWidget {
                   width: 70,
                   height: 70,
                   decoration: BoxDecoration(
+                    shape: BoxShape.circle,
                     color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(18),
+                    // borderRadius: BorderRadius.circular(18),
                     // If image URL exists, use NetworkImage, else Icon
                     // image: practitioner['profileUrl'] != null
                     //   ? DecorationImage(image: NetworkImage(practitioner['profileUrl']), fit: BoxFit.cover)
                     //   : null
                   ),
                   child: Center(
-                    child: Text(
-                      name.isNotEmpty ? name[0].toUpperCase() : '?',
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
+                    child: practitioner['ImageUrl'] != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(48),
+                            child: Image.network(
+                              practitioner['ImageUrl'],
+                              width: 70,
+                              height: 70,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : Text(
+                            name.isNotEmpty ? name[0].toUpperCase() : '?',
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(width: 16),

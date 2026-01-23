@@ -33,6 +33,7 @@ class PracAuth {
     required String Experience,
     required String subs_start_Date,
     required String subs_end_Date,
+    required String ImageUrl,
     required BuildContext context,
   }) async {
     final FirebaseAuth firebaseauth = FirebaseAuth.instance;
@@ -47,7 +48,8 @@ class PracAuth {
       );
 
       User? user = userCredentials.user;
-
+      await userCredentials.user!.updateDisplayName(Fullname);
+      await userCredentials.user!.reload();
       if (user != null) {
         await firestore.collection("Users").doc(user.uid).set({
           'uid': user.uid,
@@ -58,9 +60,11 @@ class PracAuth {
           'Experience': Experience.trim(),
           'Payment Status': 'Pending',
           'role': 'Practitioner', // 👈 Assign role here
+          'Preferred Payment Method': 'Not Selected',
           'createdAt': FieldValue.serverTimestamp(),
           'Subscription Start Date': 'Not Yet',
           'Subscription End Date': 'No Yet',
+          'ImageUrl': ImageUrl,
         });
       }
 
@@ -193,6 +197,8 @@ class PracAuth {
         if (updatedData['Experience'] != null)
           'Experience': updatedData['Experience'],
         if (updatedData['About'] != null) 'About': updatedData['About'],
+        if (updatedData['ImageUrl'] != null)
+          'ImageUrl': updatedData['ImageUrl'],
       });
 
       // ✅ Securely update Firebase Auth email
@@ -316,25 +322,61 @@ class PracAuth {
     );
   }
 
+  // Future<void> checkAndExpireSubscription() async {
+  //   final user = _auth.currentUser;
+  //   if (user == null) return;
+
+  //   final doc = await _firestore.collection('Users').doc(user.uid).get();
+  //   if (!doc.exists) return;
+
+  //   final data = doc.data()!;
+  //   final Timestamp? endTimestamp = data['Subscription End Date'];
+  //   if (endTimestamp == null) return;
+
+  //   final DateTime subscriptionEnd = endTimestamp.toDate();
+  //   final DateTime now = DateTime.now();
+
+  //   // ✅ THIS is the only logic needed
+  //   if (now.isAfter(subscriptionEnd) && data['Payment Status'] == 'Completed') {
+  //     await _firestore.collection('Users').doc(user.uid).update({
+  //       'Payment Status': 'Pending',
+  //     });
+  //   }
+  // }
   Future<void> checkAndExpireSubscription() async {
     final user = _auth.currentUser;
     if (user == null) return;
 
-    final doc = await _firestore.collection('Users').doc(user.uid).get();
-    if (!doc.exists) return;
+    try {
+      final doc = await _firestore
+          .collection('Users')
+          .doc(user.uid)
+          .get(const GetOptions(source: Source.server));
 
-    final data = doc.data()!;
-    final Timestamp? endTimestamp = data['Subscription End Date'];
-    if (endTimestamp == null) return;
+      if (!doc.exists) return;
 
-    final DateTime subscriptionEnd = endTimestamp.toDate();
-    final DateTime now = DateTime.now();
+      final data = doc.data();
+      if (data == null) return;
 
-    // ✅ THIS is the only logic needed
-    if (now.isAfter(subscriptionEnd) && data['Payment Status'] == 'Completed') {
-      await _firestore.collection('Users').doc(user.uid).update({
-        'Payment Status': 'Pending',
-      });
+      final Timestamp? endTimestamp = data['Subscription End Date'];
+      if (endTimestamp == null) return;
+
+      final DateTime subscriptionEnd = endTimestamp.toDate();
+      final DateTime now = DateTime.now();
+
+      if (now.isAfter(subscriptionEnd) &&
+          data['Payment Status'] == 'Completed') {
+        await _firestore.collection('Users').doc(user.uid).update({
+          'Payment Status': 'Pending',
+        });
+      }
+    } on FirebaseException catch (e) {
+      // 🔑 THIS PREVENTS EXECUTION PAUSE
+      debugPrint('Subscription check failed: ${e.code} - ${e.message}');
+
+      // Silently ignore — transient error
+    } catch (e) {
+      debugPrint('Unexpected error: $e');
     }
   }
 }

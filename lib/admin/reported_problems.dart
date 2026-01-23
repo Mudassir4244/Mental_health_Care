@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:mental_healthcare/admin/admin_homescreen.dart';
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
 
 class AdminSupportPanel extends StatefulWidget {
@@ -38,7 +39,10 @@ class _AdminSupportPanelState extends State<AdminSupportPanel> {
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => AdminHomescreen()),
+          ),
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
         ),
         title: const Text(

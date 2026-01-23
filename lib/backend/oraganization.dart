@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:mental_healthcare/frontend/customer_interface/checkin.dart';
 import 'package:mental_healthcare/frontend/customer_interface/loginscreen.dart';
 import 'package:mental_healthcare/frontend/customer_interface/profilescreen.dart';
@@ -36,6 +35,7 @@ class OrganAuth {
     required String role,
     required BuildContext context,
     required String payment_status,
+   
   }) async {
     final FirebaseAuth firebaseauth = FirebaseAuth.instance;
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -62,6 +62,7 @@ class OrganAuth {
           "Created by": _firebaseauth.currentUser!.uid,
           'Subscription Start Date': Timestamp.fromDate(now),
           'Subscription End Date': Timestamp.fromDate(expiryDate),
+          
         });
       }
 

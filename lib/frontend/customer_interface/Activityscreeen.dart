@@ -12,7 +12,7 @@ import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
 /// -----------------------------
 /// Models
 /// -----------------------------
-enum ActivityType { meditation, therapy, journal, breathing, custom }
+enum ActivityType { meditation, therapy, journal }
 
 class ActivityModel {
   final String id;
@@ -47,7 +47,7 @@ class ActivityModel {
       dateTime: (d['dateTime'] as Timestamp).toDate(),
       type: ActivityType.values.firstWhere(
         (e) => e.name == (d['type'] as String),
-        orElse: () => ActivityType.custom,
+        // orElse: () => ActivityType.custom,
       ),
       title: d['title'] ?? '',
       notes: d['notes'] as String?,
@@ -312,7 +312,7 @@ class _FullActivityScreenState extends State<FullActivityScreen> {
               ),
             ),
             title: const Text(
-              'Activity Screen',
+              'Your Starts to Activity Progress',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -1014,10 +1014,6 @@ class _ActivityTile extends StatelessWidget {
         return Icons.spa_rounded;
       case ActivityType.journal:
         return Icons.menu_book_rounded;
-      case ActivityType.breathing:
-        return Icons.air_rounded;
-      default:
-        return Icons.task_alt_rounded;
     }
   }
 
@@ -1029,10 +1025,6 @@ class _ActivityTile extends StatelessWidget {
         return const Color(0xFFFF7043); // Deep Orange
       case ActivityType.journal:
         return const Color(0xFF5C6BC0); // Indigo
-      case ActivityType.breathing:
-        return const Color(0xFF42A5F5); // Blue
-      default:
-        return AppColors.primary;
     }
   }
 }
@@ -1543,8 +1535,7 @@ class _AddActionSheetState extends State<_AddActionSheet> {
         return Icons.spa;
       case ActivityType.journal:
         return Icons.menu_book;
-      case ActivityType.breathing:
-        return Icons.air;
+
       default:
         return Icons.task_alt;
     }

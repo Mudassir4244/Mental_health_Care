@@ -9,6 +9,91 @@ import 'package:mental_healthcare/frontend/customer_interface/splashscreens/onbo
 import 'package:mental_healthcare/frontend/organization_interface/oraginzation%20owner/organization_homescreen.dart';
 import 'package:mental_healthcare/frontend/practioner_interface/prac_homescreen.dart';
 
+// class SplashScreen extends StatefulWidget {
+//   const SplashScreen({super.key});
+
+//   @override
+//   State<SplashScreen> createState() => _SplashScreenState();
+// }
+
+// class _SplashScreenState extends State<SplashScreen> {
+//   @override
+//   void initState() {
+//     super.initState();
+//     _checkLogin();
+//   }
+
+//   Future<void> _checkLogin() async {
+//     await Future.delayed(const Duration(seconds: 2)); // Optional splash delay
+
+//     User? user = FirebaseAuth.instance.currentUser;
+//     final auth = PracAuth();
+//     if (user != null) {
+//       // User already logged in — fetch their role
+//       final doc = await FirebaseFirestore.instance
+//           .collection('Users')
+//           .doc(user.uid)
+//           .get();
+//       await auth.checkAndExpireSubscription();
+//       if (doc.exists) {
+//         final role = doc['role'];
+//         final String normalizedRole = role?.toString().toLowerCase() ?? '';
+//         final payementStatus = doc['Payment Status'];
+
+//         if (normalizedRole == 'customer') {
+//           Navigator.pushReplacement(
+//             context,
+//             MaterialPageRoute(builder: (_) => const HomeScreen()),
+//           );
+//         } else if (normalizedRole == 'organization owner' &&
+//             payementStatus == 'Completed') {
+//           Navigator.pushReplacement(
+//             context,
+//             MaterialPageRoute(builder: (_) => const organ_owner_homescreen()),
+//           );
+//         } else if (normalizedRole == 'organization employee') {
+//           Navigator.pushReplacement(
+//             context,
+//             MaterialPageRoute(builder: (_) => const HomeScreen()),
+//           );
+//         } else if (normalizedRole == 'practitioner' &&
+//             payementStatus == 'Completed') {
+//           Navigator.pushReplacement(
+//             context,
+//             MaterialPageRoute(builder: (_) => const PracHomescreen()),
+
+//           );
+//         } else if (normalizedRole == 'admin') {
+//           Navigator.pushReplacement(
+//             context,
+//             MaterialPageRoute(builder: (_) => const AdminHomescreen()),
+//           );
+//         } else {
+//           Navigator.pushReplacement(
+//             context,
+//             MaterialPageRoute(builder: (_) => const LoginScreen()),
+//           );
+//         }
+//       } else {
+//         Navigator.pushReplacement(
+//           context,
+//           MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+//         );
+//       }
+//     } else {
+//       // User not logged in
+//       Navigator.pushReplacement(
+//         context,
+//         MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+//       );
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return const Scaffold(body: Center(child: CircularProgressIndicator()));
+//   }
+// }
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -24,64 +109,86 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkLogin() async {
-    await Future.delayed(const Duration(seconds: 2)); // Optional splash delay
+    await Future.delayed(const Duration(seconds: 2));
 
-    User? user = FirebaseAuth.instance.currentUser;
-    final auth = PracAuth();
-    if (user != null) {
-      // User already logged in — fetch their role
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+      );
+      return;
+    }
+
+    try {
       final doc = await FirebaseFirestore.instance
           .collection('Users')
           .doc(user.uid)
-          .get();
-      await auth.checkAndExpireSubscription();
-      if (doc.exists) {
-        final role = doc['role'];
-        final String normalizedRole = role?.toString().toLowerCase() ?? '';
-        final payementStatus = doc['Payment Status'];
+          .get(const GetOptions(source: Source.server));
 
-        if (normalizedRole == 'customer') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
-          );
-        } else if (normalizedRole == 'organization owner' &&
-            payementStatus == 'Completed') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const organ_owner_homescreen()),
-          );
-        } else if (normalizedRole == 'organization employee') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
-          );
-        } else if (normalizedRole == 'practitioner' &&
-            payementStatus == 'Completed') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const PracHomescreen()),
-            
-          );
-        } else if (normalizedRole == 'admin') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const AdminHomescreen()),
-          );
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const LoginScreen()),
-          );
-        }
-      } else {
+      final auth = PracAuth();
+      await auth.checkAndExpireSubscription();
+
+      if (!doc.exists) {
+        if (!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const OnboardingScreen()),
         );
+        return;
       }
-    } else {
-      // User not logged in
+
+      final role = doc['role']?.toString().toLowerCase() ?? '';
+      final paymentStatus = doc['Payment Status'];
+
+      if (!mounted) return;
+
+      if (role == 'customer') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      } else if (role == 'organization owner' && paymentStatus == 'Completed') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const organ_owner_homescreen()),
+        );
+      } else if (role == 'organization employee') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      } else if (role == 'practitioner' && paymentStatus == 'Completed') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const PracHomescreen()),
+        );
+      } else if (role == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminHomescreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      }
+    } on FirebaseException catch (e) {
+      // 🔑 THIS PREVENTS THE PAUSE
+      debugPrint('Firestore error: ${e.code}');
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+      );
+    } catch (e) {
+      debugPrint('Unknown error: $e');
+
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const OnboardingScreen()),

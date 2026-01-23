@@ -18,6 +18,7 @@ class MoodService {
       'date': Timestamp.now(),
       'userid': userid,
       'mood number': number,
+      'Created At': FieldValue.serverTimestamp(),
     };
 
     // Always add a new document to allow multiple check-ins per day

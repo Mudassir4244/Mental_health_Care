@@ -47,6 +47,7 @@ class _TherapistDetailsState extends State<TherapistDetails> {
               receiverId: therapist['uid'],
               receiverName: therapist['username'],
               receiverRole: "Therapist",
+              recieverimageurl: therapist['ImageUrl'],
             ),
           ),
         ).then((_) {
@@ -148,14 +149,23 @@ class _TherapistDetailsState extends State<TherapistDetails> {
                         child: CircleAvatar(
                           radius: 50,
                           backgroundColor: Colors.white,
-                          child: Text(
-                            name.isNotEmpty ? name[0].toUpperCase() : '?',
-                            style: const TextStyle(
-                              fontSize: 40,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                            ),
-                          ),
+                          child:
+                              widget.data['ImageUrl'] != null &&
+                                  widget.data['ImageUrl'].toString().isNotEmpty
+                              ? CircleAvatar(
+                                  radius: 48,
+                                  backgroundImage: NetworkImage(
+                                    widget.data['ImageUrl'],
+                                  ),
+                                )
+                              : Text(
+                                  name.isNotEmpty ? name[0].toUpperCase() : '?',
+                                  style: const TextStyle(
+                                    fontSize: 40,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -261,7 +271,13 @@ class _TherapistDetailsState extends State<TherapistDetails> {
                     subtitle: therapist['Address'] ?? "Online",
                     color: Colors.redAccent,
                   ),
-
+                  _buildInfoTile(
+                    icon: Icons.payment_outlined,
+                    title: "Prefered Payment Method",
+                    subtitle:
+                        therapist['Preferred Payment Method'] ?? "Not Provided",
+                    color: Colors.green,
+                  ),
                   const SizedBox(height: 30),
 
                   // Send Message Button
@@ -294,7 +310,7 @@ class _TherapistDetailsState extends State<TherapistDetails> {
                                 Icon(Icons.chat_bubble_outline, size: 22),
                                 SizedBox(width: 10),
                                 Text(
-                                  'Start Conversation',
+                                  'Text to Connect',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,

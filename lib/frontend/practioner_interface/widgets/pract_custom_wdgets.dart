@@ -16,7 +16,10 @@ import 'package:mental_healthcare/frontend/practioner_interface/prac_homescreen.
 import 'package:mental_healthcare/frontend/practioner_interface/prac_profile.dart';
 import 'package:mental_healthcare/frontend/practioner_interface/practitionar_training.dart';
 import 'package:mental_healthcare/frontend/widgets/appcolors.dart';
+import 'package:mental_healthcare/l10n/app_localizations.dart';
+import 'package:mental_healthcare/main.dart';
 import 'package:mental_healthcare/resources/resources_screen.dart';
+import 'package:provider/provider.dart';
 
 class WelcomeBanner extends StatelessWidget {
   final String name;
@@ -73,59 +76,50 @@ class FeatureGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return GridView.count(
       crossAxisCount: 2,
       crossAxisSpacing: 16.0,
       mainAxisSpacing: 16.0,
       physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
       children: [
         FeatureTile(
-          label: 'HELP NOW',
+          label: l10n.helpNow,
           illustration: _buildPlaceholderIllustration(Icons.handshake_outlined),
-          ontap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const HelpNowScreen()),
-            );
-          },
+          ontap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => HelpNowScreen()),
+          ),
           imagepath: 'assets/helpnow.png',
         ),
         FeatureTile(
-          label: 'CHECK IN',
+          label: l10n.checkIn,
           illustration: _buildPlaceholderIllustration(Icons.map_outlined),
-          ontap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const CheckInScreen()),
-            );
-          },
+          ontap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => CheckInScreen()),
+          ),
           imagepath: 'assets/checkin.png',
         ),
         FeatureTile(
-          label: 'TRAINING',
+          label: l10n.training,
           illustration: _buildPlaceholderIllustration(
             Icons.psychology_outlined,
           ),
-          ontap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const PractitionarTraining(),
-              ),
-            );
-          },
+          ontap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => PractitionarTraining()),
+          ),
           imagepath: 'assets/training.png',
         ),
         FeatureTile(
-          label: 'RESOURCES',
+          label: l10n.toolsAndResources,
           illustration: _buildPlaceholderIllustration(Icons.source_outlined),
-          ontap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ResourcesScreen()),
-            );
-          },
+          ontap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => ResourcesScreen()),
+          ),
           imagepath: 'assets/resources.png',
         ),
       ],
@@ -234,7 +228,9 @@ class prac_bottomNavbbar extends StatelessWidget {
             label: "Inbox",
             isSelected: currentScreen == 'Inbox',
             onTap: () => _handleNavigation(
-                context, const InboxScreen(isPractitioner: true)),
+              context,
+              const InboxScreen(isPractitioner: true),
+            ),
           ),
           _NavItem(
             icon: Icons.model_training,
@@ -310,7 +306,7 @@ class prac_drawer extends StatefulWidget {
 
 class _PracDrawerState extends State<prac_drawer> {
   User? get user => FirebaseAuth.instance.currentUser;
-
+  final provider = PracProfileProvider();
   Widget _buildDrawerItem({
     required IconData icon,
     required String title,
@@ -352,6 +348,9 @@ class _PracDrawerState extends State<prac_drawer> {
 
   @override
   Widget build(BuildContext context) {
+    Map<String, dynamic>? profile;
+    final provider = Provider.of<PracProfileProvider>(context);
+    final data = provider.profile;
     return Drawer(
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
@@ -375,39 +374,77 @@ class _PracDrawerState extends State<prac_drawer> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
+                Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: CircleAvatar(
-                    radius: 35,
-                    backgroundColor: Colors.white,
-                    backgroundImage: user?.photoURL != null
-                        ? NetworkImage(user!.photoURL!)
-                        : null,
-                    child: user?.photoURL == null
-                        ? Text(
-                            user?.email?.substring(0, 1).toUpperCase() ?? "P",
-                            style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                            ),
-                          )
-                        : null,
-                  ),
+                      child: CircleAvatar(
+                        radius: 35,
+                        backgroundColor: Colors.white,
+                        backgroundImage: data?['ImageUrl'] != null
+                            ? NetworkImage(data?['ImageUrl'])
+                            : null,
+                        child: data?['ImageUrl'] == null
+                            ? Text(
+                                user?.email?.substring(0, 1).toUpperCase() ??
+                                    "P",
+                                style: TextStyle(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              )
+                            : null,
+                      ),
+                    ),
+                    SizedBox(width: 40),
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: DropdownButton<Locale>(
+                        underline: const SizedBox(),
+                        icon: Icon(
+                          Icons.language,
+                          color: AppColors.textColorPrimary,
+                          size: 40,
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: Locale('en'),
+                            child: Text('English'),
+                          ),
+                          DropdownMenuItem(
+                            value: Locale('es'),
+                            child: Text('Español'),
+                          ),
+                          DropdownMenuItem(
+                            value: Locale('de'),
+                            child: Text('Deutsch'),
+                          ),
+                        ],
+                        onChanged: (locale) {
+                          if (locale != null) {
+                            MyApp.setLocale(context, locale);
+                            // The screen will automatically rebuild due to the key change
+                            setState(() {}); // This triggers rebuild
+                          }
+                        },
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 15),
                 Text(
-                  user?.displayName ?? "Practitioner",
+                  data?['username'] ?? user?.displayName ?? "Practitioner",
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -435,7 +472,7 @@ class _PracDrawerState extends State<prac_drawer> {
               children: [
                 _buildDrawerItem(
                   icon: Icons.bookmark_outline,
-                  title: 'Check In',
+                  title: AppLocalizations.of(context)!.checkIn,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -445,7 +482,7 @@ class _PracDrawerState extends State<prac_drawer> {
                 ),
                 _buildDrawerItem(
                   icon: Icons.local_activity_outlined,
-                  title: 'Help Now',
+                  title: AppLocalizations.of(context)!.helpNow,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -455,7 +492,7 @@ class _PracDrawerState extends State<prac_drawer> {
                 ),
                 _buildDrawerItem(
                   icon: Icons.insights_outlined,
-                  title: 'Insights',
+                  title: AppLocalizations.of(context)!.insights,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -465,7 +502,7 @@ class _PracDrawerState extends State<prac_drawer> {
                 ),
                 _buildDrawerItem(
                   icon: Icons.calendar_month_outlined,
-                  title: 'Activities',
+                  title: AppLocalizations.of(context)!.activities,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -475,7 +512,7 @@ class _PracDrawerState extends State<prac_drawer> {
                 ),
                 _buildDrawerItem(
                   icon: Icons.person_search_outlined,
-                  title: 'Other Practitioner',
+                  title: AppLocalizations.of(context)!.otherPractitioner,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -489,7 +526,7 @@ class _PracDrawerState extends State<prac_drawer> {
                 ),
                 _buildDrawerItem(
                   icon: Icons.settings_outlined,
-                  title: 'Settings',
+                  title: AppLocalizations.of(context)!.settings,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -506,7 +543,7 @@ class _PracDrawerState extends State<prac_drawer> {
             padding: const EdgeInsets.only(bottom: 20, top: 10),
             child: _buildDrawerItem(
               icon: Icons.logout_rounded,
-              title: 'Logout',
+              title: AppLocalizations.of(context)!.logout,
               iconColor: Colors.redAccent,
               textColor: Colors.redAccent,
               onTap: () {
@@ -541,21 +578,32 @@ class _PracDrawerState extends State<prac_drawer> {
                             ),
                           ),
                           onPressed: () {
-                            PracAuth().signOut(context).then((Value) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => LoginScreen(),
-                                ),
-                              );
-                              Get.snackbar(
-                                "Logout",
-                                'Logout Successfully ',
-                                backgroundColor: Colors.white.withValues(
-                                  alpha: 0.7,
-                                ),
-                              );
-                            });
+                            PracAuth()
+                                .signOut(context)
+                                .then((Value) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => LoginScreen(),
+                                    ),
+                                  );
+                                  Get.snackbar(
+                                    "Logout",
+                                    'Logout Successfully ',
+                                    backgroundColor: Colors.white.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                  );
+                                })
+                                .onError((error, stackTrace) {
+                                  Get.snackbar(
+                                    "Error in logging out",
+                                    error.toString(),
+                                    backgroundColor: Colors.white.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                  );
+                                });
                           },
                           child: const Text(
                             'Logout',
