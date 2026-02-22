@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Shifa International Hospital",
+    "lat": 33.6844,
+    "lng": 73.0479,
+    "address": "Islamabad"
+  },
+  {
+    "name": "PIMS Hospital",
+    "lat": 33.7200,
+    "lng": 73.0500,
+    "address": "Islamabad"
+  },
+  {
+    "name": "Agha Khan Hospital",
+    "lat": 24.8607,
+    "lng": 67.0011,
+    "address": "Karachi"
+  }
+]

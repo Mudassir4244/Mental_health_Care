@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "237293095018",
+    "firebase_url": "https://mindassist-256e9-default-rtdb.firebaseio.com",
+    "project_id": "mindassist-256e9",
+    "storage_bucket": "mindassist-256e9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:237293095018:android:59b4f3611b4614f8472213",
+        "android_client_info": {
+          "package_name": "com.example.mental_healthcare"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "237293095018-5htbpqu78pl1jjhr0flo8a1ng9pn5sn8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCBPTx25-QFsQuedvF54TLaUTDdrdxjElY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "237293095018-4rdne9bf9vj494c07pf1hm76d5or2gmv.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "237293095018-6f19393eba7ehbhit7rj1ln3bepre2g5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.mentalHealthcare"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
